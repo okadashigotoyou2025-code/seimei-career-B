@@ -1,0 +1,20 @@
+■ GitHub Pages で、先生・生徒がURLで開けるようにする手順（無料・約15分）
+
+いちばん確実な共有方法です。iPadでもSafariでそのまま開けます。
+アプリの中に生徒の個人データは入っていないので、公開して問題ありません（記録は各自の端末とカード画像にだけ残ります）。
+※学校のルールで外部公開の手続きが必要な場合は、先に確認してください。
+
+1. https://github.com で無料アカウントを作る（学校用のメールアドレス推奨）
+2. 右上の「＋」→「New repository」。名前は例として seimei-career。「Public」を選んで作成
+3. 「uploading an existing file」を押し、このフォルダ（共有用）の中のファイルをすべてドラッグして「Commit changes」
+4. リポジトリの「Settings」→ 左の「Pages」→ Branch を「main」「/(root)」にして「Save」
+5. 1〜2分待つと、 https://（アカウント名）.github.io/seimei-career/ で開けるようになる
+   ・入口ページ： …/seimei-career/ （index.html）
+   ・生徒用アプリ： …/seimei-career/キャリアステップv8.html
+6. 生徒用アプリのURLを、Formsの完了メッセージと、ロイロの「Webカード」に入れる
+
+更新するとき：組み替えツールで作った新しいHTMLを、同じ名前で 3 と同じようにアップロードする（上書き）。
+
+■ もっと手軽に（PCの先生だけに見せるとき）
+「キャリアステップv8_検討用.zip」をTeamsやメールで送る → 受け取った先生が展開して index.html をダブルクリック。
+（iPadではうまく動かないことがあります）

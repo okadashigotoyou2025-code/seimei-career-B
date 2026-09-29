@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>キャリア調査ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+[hidden]{display:none!important}
+:root{
+  color-scheme:light;
+  --bg:#E8F4F8; --card:#FFFFFF; --tx:#1A3040; --mute:#4F6878; --line:#BFD8E3;
+  --ac:#2E7D9A; --acsoft:#C8E0EB; --acdeep:#1C5F78;
+  --p1:#2E7D9A; --p1s:#D3E8F0; --p2:#3C7F55; --p2s:#D7EBDD; --p3:#A8621C; --p3s:#F3E2CC;
+  --low:#B03A3A; --lows:#F6DADA; --warn:#F6E6CF; --warnx:#6B4210; --good:#DCEEDF; --goodx:#285C38;
+  --t1:#2E7D9A; --t2:#B4541F; --t3:#3C7F55; --t4:#8A8FA3; --t5:#C9D5DB;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"BIZ UDPGothic","Meiryo UI","Meiryo",sans-serif;font-size:15px;line-height:1.65}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--acdeep);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:18px 48px;padding-inline:16px;display:flex;flex-direction:column;gap:14px}
+header.h{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end}
+header.h h1{margin:0;font-size:24px;letter-spacing:.02em}
+header.h .sub{color:var(--mute);font-size:14px}
+.load{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto}
+.btn{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:6px 14px;font-size:14px}
+.btn.pri{background:var(--acsoft);border-color:var(--ac);color:var(--acdeep);font-weight:700}
+.src{font-size:13px;color:var(--mute)}
+.banner{background:var(--warn);color:var(--warnx);border-radius:10px;padding:8px 14px;font-size:14px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px}
+.filters select{border:2px solid var(--line);border-radius:8px;padding:4px 8px;background:var(--card)}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;padding:10px 14px;font-size:15px;color:var(--mute);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--acdeep);font-weight:700;border-bottom-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tile .k{font-size:13px;color:var(--mute)}
+.tile .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+.tile .v small{font-size:14px;color:var(--mute);font-weight:400}
+.tile.alert{border-color:var(--low);background:var(--lows)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel h2{margin:0 0 4px;font-size:18px}
+.panel .note{margin:0 0 10px;color:var(--mute);font-size:13px}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.stack{display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--t5)}
+.stack span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin-top:8px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.kbars{display:flex;flex-direction:column;gap:4px}
+.kb{display:grid;grid-template-columns:44px 1fr minmax(90px,150px) 40px;gap:8px;align-items:center;font-size:14px;padding:3px 4px;border-radius:6px;background:none;border:0;text-align:left;width:100%}
+.kb:hover{background:var(--bg)}
+.kb .id{font-weight:700;font-size:13px;border-radius:5px;text-align:center;padding:1px 0}
+.kb .bar{height:14px;background:var(--bg);border-radius:4px;position:relative;overflow:hidden}
+.kb .bar i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.kb .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.kb .m{grid-column:2 / 5;font-size:12px;color:var(--mute);margin-top:-4px}
+.kb.low .val{color:var(--low)}
+.pl-h{font-size:13px;font-weight:700;margin:8px 0 2px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-family:"Meiryo UI","BIZ UDPGothic",sans-serif;font-size:13px}
+th{background:#C8E0EB;color:#1C5F78;text-align:left;padding:6px 8px;border:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+td{padding:6px 8px;border:1px solid var(--line);vertical-align:top;background:var(--card)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.nw{white-space:nowrap}
+.chip{display:inline-block;border-radius:999px;padding:0 8px;font-size:12px;margin:1px 2px;border:1px solid var(--line);background:var(--bg);white-space:nowrap}
+.chip.r{background:var(--lows);border-color:#E0A5A5;color:#7A2020;font-weight:700}
+.kcard{display:grid;grid-template-columns:120px 1fr;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+@media (max-width:700px){.kcard{grid-template-columns:1fr}}
+.kcard .score{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kcard h3{margin:0;font-size:17px}
+.kcard .cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;margin-top:8px}
+.kcard .cell{background:var(--bg);border-radius:8px;padding:6px 8px;font-size:13px;white-space:pre-line}
+.kcard .cell b{display:block;font-size:12px;color:var(--mute)}
+.kcard .cell.empty{color:var(--mute);background:none;border:1px dashed var(--line)}
+.sm{font-size:13px;color:var(--mute)}
+.mat td{min-width:130px;white-space:pre-line}
+.mat td.h{min-width:180px}
+.mat td.emp{background:#FBF3F3}
+.hint2{font-size:13px;margin-top:6px;background:var(--bg);border-radius:8px;padding:4px 8px}
+.howto ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.empty-state{text-align:center;padding:30px;color:var(--mute)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="h">
+    <div><h1>キャリア調査ダッシュボード</h1><div class="sub">キャリアステップ調査 v8 の回答と、マスタの体制一覧表をつなげて見る（先生用）</div></div>
+    <div class="load">
+      <label class="btn pri" for="file" style="cursor:pointer">Formsの回答Excelを読み込む</label>
+      <input type="file" id="file" accept=".xlsx,.csv" hidden>
+      <button class="btn" id="sample">サンプルで試す</button>
+      <label class="btn" for="mfile" style="cursor:pointer">マスタを読み込む（体制を最新に）</label>
+      <input type="file" id="mfile" accept=".xlsx" hidden>
+      <span class="src" id="src"></span><span class="src" id="msrc"></span>
+    </div>
+  </header>
+  <div id="banner"></div>
+  <div class="filters" id="filters"></div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-t="all">全体</button>
+    <button role="tab" data-t="follow">要フォロー</button>
+    <button role="tab" data-t="where">どこを強めるか</button>
+    <button role="tab" data-t="taisei">体制一覧表</button>
+    <button role="tab" data-t="daicho">取り組み台帳</button>
+    <button role="tab" data-t="taiou">アンケート対応表</button>
+    <button role="tab" data-t="how">使い方</button>
+  </nav>
+  <main id="out"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const D = {"v":"v8","kids":[{"id":"A1","pillar":"自分を知る","name":"好きなこと・気になること","ask":"何が好き？ 何にワクワクする？","links":["A2","B2","C5"],"official":"自分の興味・関心に気づく機会がある","sugata":"学校の外でも自分から続けている「好き」があると言える","q":"12 好き・得意"},{"id":"A2","pillar":"自分を知る","name":"強みを言葉にする","ask":"自分の得意を、人に説明できる？","links":["A1","C4","B3"],"official":"自分の強みや特性を言葉にする機会がある","sugata":"自分の好き・得意を人に説明できる","q":"12 好き・得意"},{"id":"A3","pillar":"自分を知る","name":"勉強と将来のつながり","ask":"今の勉強は、どこにつながる？","links":["C1","A1"],"official":"教科の学びと将来のつながりを実感できる","sugata":"学校での勉強が将来の仕事の可能性を広げると思える","q":"（調査に項目なし）"},{"id":"A4","pillar":"自分を知る","name":"自分に合うやり方・必要な助け","ask":"どうすれば進めやすい？","links":["B4","B1"],"official":"苦手さや必要な配慮を自分で把握し、伝えられる","sugata":"自分に必要な助けが分かり、自分から申し出られる","q":"（調査に項目なし）"},{"id":"B1","pillar":"人と関わる","name":"学校で話せる大人","ask":"話を聞いてくれる大人はいる？","links":["B4","A4"],"official":"進路について話せる大人が校内にいる","sugata":"学校に自分のことを分かってくれる先生や大人がいる","q":"13 相談相手"},{"id":"B2","pillar":"人と関わる","name":"学校の外の人と出会う","ask":"働く人や先輩に会ってみる","links":["C3","A1","C1"],"official":"学校外の大人・先輩と出会う機会がある","sugata":"働いている人や上級学校の先輩の話を聞いたことがある","q":"15 経験"},{"id":"B3","pillar":"人と関わる","name":"友だちと考えを話す","ask":"まわりの人はどう考えてる？","links":["A2","B2"],"official":"生徒同士で進路や考えを交わす機会がある","sugata":"友達や先輩と進路について話したことがある","q":"13 相談相手"},{"id":"B4","pillar":"人と関わる","name":"困ったときの相談先","ask":"困ったら、どこに行けばいい？","links":["A4","B1"],"official":"困ったときに相談先が分かり、自分からアクセスできる","sugata":"どこに誰に相談すればよいか分かり、自分から相談できる","q":"13 相談相手／19〜21 気になっていること"},{"id":"B5","pillar":"人と関わる","name":"家の人と話す","ask":"家の人と、進路の話をしてみる","links":["C2","C4"],"official":"家庭と学校が進路について共有する機会がある","sugata":"家族と進路について話し合えている","q":"14 保護者等との会話"},{"id":"C1","pillar":"ポジションをとる","name":"進路のしくみを知る","ask":"どんな道がある？ どう進む？","links":["C3","C2","A3"],"official":"進路の選択肢と仕組みを正しく知る機会がある","sugata":"志望に必要な時期・方法をだいたい説明できる","q":"19 進路の情報"},{"id":"C2","pillar":"ポジションをとる","name":"お金と支援制度を知る","ask":"いくらかかる？ どんな支えがある？","links":["C1","B5"],"official":"費用と支援制度を知る機会がある","sugata":"学費や奨学金のおおよそが分かっている","q":"20 お金のこと"},{"id":"C3","pillar":"ポジションをとる","name":"見て・試して確かめる","ask":"実際に行って、やってみる","links":["C4","B2"],"official":"実際に試し、確かめる機会がある","sugata":"見学や体験を通じて、志望が自分に合うか確かめている","q":"15 経験"},{"id":"C4","pillar":"ポジションをとる","name":"自分で選んで決める","ask":"くらべて、1つにしぼる","links":["C5","A2"],"official":"自分で選び、決める場面がある","sugata":"自分の考えで進路を選べている（納得感がある）","q":"10 興味があるから／16 納得している／17 立ち位置"},{"id":"C5","pillar":"ポジションをとる","name":"ふり返って見直す","ask":"やってみてどうだった？ 次は？","links":["A1","C4"],"official":"決めたことを振り返り、必要なら選び直せる","sugata":"いつ何をすべきか見通しがあり、必要なら考え直せる","q":"18 何をすればいいか考えている／22 次にやること"}],"contents":[{"id":"c101","title":"なんで、自分を知らないといけないの？","desc":"進路を考える前に「自分」を知る理由。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A1"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c102","title":"自分の興味を知ろう","desc":"夢中になったこと・ちょっと気になることを書き出す。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A1"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"","write":"夢中になったこと・ちょっと気になることを、3つ書き出そう。","tori":"","links":[],"img":""},{"id":"c104","title":"清明高校で学ぶということ","desc":"今の学びが、どう未来につながるか。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"公開","kids":["A3"],"concerns":["勉強"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c105","title":"「何にも興味が湧かない」ときは","desc":"興味がなくても大丈夫。小さな「ちょっと気になる」の見つけ方。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A1"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"最近「ちょっといいな」と思ったものを1つ書こう。小さなことでいい。","tori":"","links":[],"img":""},{"id":"c106","title":"進路は、ここから始めよう！","desc":"進路を考えはじめるときに、最初に見る動画。何から始めればいいかがわかる。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv","state":"準備中","kids":["C1","A1"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c201","title":"情報を知る意味は？","desc":"知らない道は選べない。情報を集める意味。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c202","title":"三つの選択肢を知ろう","desc":"大学・短大／専門学校／就職、それぞれの違いをざっくり。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c203","title":"大学・短大について","desc":"学部・学費・入試方法の基本。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["大学"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c204","title":"専門学校について","desc":"分野・とれる資格・学費の基本。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["専門"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c205","title":"就職について","desc":"学校斡旋・就労支援・障害者雇用の違い。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["就職"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c206","title":"分野別説明会に参加する","desc":"大学・専門・企業の人から直接話を聞く。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C1","B2"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"1コマ","bun":"進路支援部","dan":1,"box":"","write":"","tori":"分野別説明会","links":[],"img":""},{"id":"c207","title":"オープンキャンパス・学校見学に行く","desc":"実際の雰囲気を自分の目で見る。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C3","B2"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"半日","bun":"総務企画部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c208","title":"先輩の声を聞こう","desc":"清明の卒業生が、どう進路を決めたか。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["B2"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c301","title":"自分のことを整理する（ワークシート）","desc":"①興味・苦手／得意 ②お金の状況 ③家庭・まわりの状況 の3ページで、いまの自分を整理する。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A4","A1","A2","C2"],"concerns":["自分のこと","お金","生活や家のこと"],"michi":["すべて"],"nenji":[],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c301_自分のことを整理する","write":"","tori":"つばプロ（必修探究）","links":["c961"],"img":""},{"id":"c302","title":"調べてみよう：大学・短大","desc":"場所・特徴・学部・学費・受験方法を比べる。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4"],"concerns":[],"michi":["大学"],"nenji":[],"meyasu":"30分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c302_調べてみよう：大学・短大","write":"","tori":"","links":[],"img":""},{"id":"c303","title":"調べてみよう：専門学校","desc":"国の指定の養成施設か・国家試験の合格率・実習・学費の総額・修学支援の対象校か、を3校で比べる。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4"],"concerns":[],"michi":["専門"],"nenji":[],"meyasu":"30分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c303_調べてみよう：専門学校","write":"","tori":"","links":[],"img":""},{"id":"c304","title":"調べてみよう：就職","desc":"仕事内容・勤務地・条件・応募の流れ。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4"],"concerns":[],"michi":["就職"],"nenji":[],"meyasu":"30分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c304_調べてみよう：就職","write":"","tori":"","links":[],"img":""},{"id":"c305","title":"選択しよう！","desc":"比べた候補から、どうやって一つに決めるか。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C4"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c306","title":"選ぶ理由を自分の言葉で書く","desc":"「他にないから」ではなく「〇〇だから」を3行で。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4","A2"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"15分","bun":"進路支援部","dan":1,"box":"","write":"「〇〇だから、この道を考えている」を3行で書こう。","tori":"","links":[],"img":""},{"id":"c307","title":"面談で考えを話してみる","desc":"担任の先生に、今の候補と理由を話す。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B1","C4"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"15分","bun":"担任部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c401","title":"受ける学校・就職先（分野）を決めよう","desc":"国公立・私立、受験方法、分野を決める。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4"],"concerns":[],"michi":["すべて"],"nenji":["S","G"],"meyasu":"30分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c401_受ける学校・就職先（分野）を決めよう","write":"","tori":"","links":[],"img":""},{"id":"c402","title":"受験計画を立てよう","desc":"受験日程とお金（受験料・入学金）をカレンダーに。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C5","C2"],"concerns":["お金"],"michi":["すべて"],"nenji":["S","G"],"meyasu":"30分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c402_受験計画を立てよう","write":"","tori":"","links":[],"img":""},{"id":"c403","title":"予定を管理してみよう","desc":"締め切りから逆算するコツ。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C5"],"concerns":[],"michi":["すべて"],"nenji":["S","G"],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c404","title":"入試要項を読もう","desc":"見落としやすいポイントを確認。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":["G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c405","title":"志望理由書とは？ 小論文とは？","desc":"何を見られているのかを知る。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A2"],"concerns":[],"michi":["大学","専門"],"nenji":["S","G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":["c406","c407"],"img":""},{"id":"c406","title":"志望理由書ワーク","desc":"動画を見てから、自分の志望理由書を下書き。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A2","C4"],"concerns":[],"michi":["すべて"],"nenji":["S","G"],"meyasu":"45分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c406_志望理由書ワーク","write":"","tori":"","links":[],"img":""},{"id":"c407","title":"小論文ワーク","desc":"型を使って一本書いてみる。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A2"],"concerns":[],"michi":["すべて"],"nenji":["S","G"],"meyasu":"45分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c407_小論文ワーク","write":"","tori":"","links":[],"img":""},{"id":"c408","title":"面接対策ワーク","desc":"よく聞かれる質問に、自分の言葉で答える練習。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A2"],"concerns":[],"michi":["すべて"],"nenji":["S","G"],"meyasu":"30分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c408_面接対策ワーク","write":"","tori":"","links":[],"img":""},{"id":"c409","title":"一般入試の科目と対策","desc":"科目の確認と勉強の進め方。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A3"],"concerns":["勉強"],"michi":["大学"],"nenji":["S","G"],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c410","title":"AI利用の注意点","desc":"志望理由書や小論文でAIを使うときのルール。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A2"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c411","title":"進学補習・受験対策講座に出る","desc":"決めたことを、仲間と一緒にやりきる。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["A3"],"concerns":["勉強"],"michi":["すべて"],"nenji":["S","G"],"meyasu":"継続","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c412","title":"就職ガイダンスに出る","desc":"応募から面接までの流れと準備。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C1","C3"],"concerns":["進路の情報"],"michi":["就職"],"nenji":["S","G"],"meyasu":"1コマ","bun":"進路支援部","dan":1,"box":"","write":"","tori":"就職ガイダンス","links":[],"img":""},{"id":"c413","title":"行事・生徒会・部活で役割を引き受ける","desc":"実行委員、係、部の役割。やりきった経験は面接でも話せる。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B3"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"継続","bun":"生徒支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c501","title":"ポートフォリオに記録する","desc":"やったこと・感じたこと・わかったことを残す。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C5"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c501_ポートフォリオに記録する","write":"","tori":"","links":[],"img":""},{"id":"c502","title":"感想用紙・リファレンスシートを書く","desc":"LHR・総探・授業で使う共通のふり返りシート。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C5"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"担任部","dan":1,"box":"キャリアステップ ＞ c502_感想用紙・リファレンスシートを書く","write":"","tori":"感想用紙・リファレンスシート","links":[],"img":""},{"id":"c503","title":"キャリアステップ調査に答える","desc":"6月・11月。答えること自体が、自分の現在地を知るきっかけに。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C5"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"キャリアステップ調査","links":[],"img":""},{"id":"c504","title":"受験報告書を書く","desc":"受けた試験の内容を、後輩のために残す。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C5","B3"],"concerns":[],"michi":["すべて"],"nenji":["G"],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c504_受験報告書を書く","write":"","tori":"","links":[],"img":""},{"id":"c601","title":"担任の先生に話す","desc":"何から話せばいいかわからなくても大丈夫。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B1"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"担任部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c602","title":"進路支援部に相談する","desc":"進路の情報・手続きのことなら。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B1","B4"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"進路支援部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c603","title":"教育相談部の先生に相談してみる","desc":"気持ちのこと、しんどいこと。カウンセラーなど、話を聞いてくれる人もいる。まずは担任か教育相談部の先生に相談してみて。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B4","A4"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"教育相談部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c604","title":"AIチャットボットにきく","desc":"いつでも、気軽に。何を調べればいいかも一緒に考えてくれる。","kind":"サイト","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["B4","C1"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"AIチャットボット","links":[],"img":""},{"id":"c605","title":"ロイロノートの資料箱を見てみる","desc":"過去の合格体験記、指定校推薦一覧など、進路の資料が集まっている場所。","kind":"サイト","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C1"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c608","title":"友だちと進路の話をしてみる","desc":"「どう考えてる？」とひとこと聞くだけでいい。比べて落ちこみそうなら、やらなくていい。","kind":"対話","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"公開","kids":["B3"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":2,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c609","title":"先輩（卒業生）に話を聞く","desc":"先輩の話は、先生の話とはちがうヒントになる。","kind":"対話","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B2","B3"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"15分","bun":"進路支援部","dan":2,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c610","title":"自分に合う過ごし方・学び方を書き出す","desc":"どんなときに落ち着く？ どんなやり方だと進める？","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A4"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"落ち着ける場所・進めやすいやり方を、1つずつ書こう。","tori":"","links":[],"img":""},{"id":"c607","title":"おうちの人と話すカード","desc":"話すきっかけになる問いを1つ選んで、おうちの人と話してみる。例：「高校を出たら、どうしてほしいと思ってる？」","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"公開","kids":["B5"],"concerns":["生活や家のこと"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":2,"box":"","write":"おうちの人と話したこと・言われたことを、1つ書こう。","tori":"","links":[],"img":""},{"id":"c701","title":"入試方法について","desc":"総合型・学校推薦型・一般の違い。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["大学","専門"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c702","title":"指定校推薦：評定・校内選考・辞退できないこと","desc":"評定は1年〜3年1学期の成績で決まる。校内選考は3年の夏〜秋。合格したら辞退できない。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["大学"],"nenji":["M","S","G"],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c703","title":"理系・文系、学部について","desc":"学部選びと科目のつながり。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1","A3"],"concerns":["進路の情報","勉強"],"michi":["大学"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c704","title":"大学の偏差値など","desc":"数字の読み方と、数字だけで決めないコツ。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["大学"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c705","title":"専門学校の入試について","desc":"AO入試は6月ごろからエントリー、9月ごろから出願が多い。専願が多いので春に候補をしぼる。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["専門"],"nenji":["S","G"],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c706","title":"就職：学校斡旋のしくみ","desc":"高校生の就職は学校を通して応募するのが原則。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["就職"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c707","title":"公務員という道","desc":"試験の種類と準備。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["就職"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c711","title":"奨学金","desc":"給付型・貸与型、申し込みの時期。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2"],"concerns":["お金"],"michi":["すべて"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c712","title":"受験にかかるお金","desc":"受験料・交通費・入学金の目安。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2"],"concerns":["お金"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c713","title":"一人暮らしの費用","desc":"家賃・生活費のざっくり計算。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2"],"concerns":["お金"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c714","title":"アルバイトをするときの注意点","desc":"進路と両立するために。働きすぎ・時間・お金の注意点。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2"],"concerns":["お金"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c721","title":"基礎学力が心配・話すのが心配 → いろいろな入試方法","desc":"学力試験だけではない入り方や、面接の比重が小さい入り方がある。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1","A3","A2"],"concerns":["勉強","進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c724","title":"単位・卒業のことを受講の手引きで確かめる","desc":"自分の単位と卒業要件を、まず自分で見てみる。","kind":"サイト","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["A3"],"concerns":["勉強"],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"学習支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c731","title":"受験上の配慮","desc":"高2のうちに校内で配慮を受け始める→高3の夏に共通テストの配慮を申請（診断書と学校の報告書）→大学ごとに事前相談。","kind":"動画","url":"https://www.dnc.ac.jp/kyotsu/kako_shiken_jouhou/r7/r7_hairyo_qa.html","state":"公開","kids":["A4"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c732","title":"障がい者就労・障がい者雇用・就労支援","desc":"働き方の選択肢と支援。卒業後に使える支援機関も。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A4","C1"],"concerns":["自分のこと","進路の情報"],"michi":["配慮","就職"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c734","title":"気持ちや特性のことを話せる場所","desc":"カウンセリングや通級など、話せる場所がある。使いたいときは、担任か教育相談部の先生に相談してみて。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B4","A4"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"教育相談部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c741","title":"自立支援ホーム","desc":"家を出て進学・就職するときの支え。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2","A4"],"concerns":["生活や家のこと","お金"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c742","title":"国籍・在留資格について","desc":"「家族滞在」で卒業後に働くなら、内定のあとで在留資格を変える手続きがいる。奨学金も条件つきで申し込める。高2のうちに在留カードを見て先生と確認。","kind":"動画","url":"https://www.moj.go.jp/isa/applications/resources/nyuukokukanri07_00122.html","state":"公開","kids":["A4"],"concerns":["生活や家のこと","自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c743","title":"日本語・通学・住まいのこと","desc":"一人で抱えずに相談を。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B4"],"concerns":["生活や家のこと"],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"教育相談部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c744","title":"家族の世話・家の手伝いのこと","desc":"一人でかかえなくていい。支えてくれる人（スクールソーシャルワーカーなど）もいるので、担任か教育相談部の先生に相談してみて。","kind":"相談","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B4","A4"],"concerns":["生活や家のこと","自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"教育相談部","dan":3,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c801","title":"ボランティアをしてみる","desc":"学校の外の人と出会う近道。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B2","C3"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"生徒支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c802","title":"職業体験（保育園・幼稚園・看護）","desc":"幼保看体験。仕事の現場をのぞく。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C3","B2"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"1日","bun":"進路支援部","dan":1,"box":"","write":"","tori":"幼保看体験（幼稚園・保育園／看護）","links":[],"img":""},{"id":"c803","title":"資格について","desc":"とっておくと道が広がる資格。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1","A3"],"concerns":["進路の情報","勉強"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c804","title":"つばめプロジェクト","desc":"総探で、地域や企業とプロジェクトに取り組む。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B3","B2"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"授業","bun":"総探","dan":1,"box":"","write":"","tori":"つばプロ（必修探究）","links":[],"img":""},{"id":"c805","title":"海外交流に参加する","desc":"ちがう文化の人と出会う。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B2"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"","bun":"総務企画部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c901","title":"なりたい仕事から道すじを調べる（job tag）","desc":"仕事の名前で調べると、なり方・必要な資格・学校がわかる。","kind":"サイト","url":"https://shigoto.mhlw.go.jp/User/","state":"公開","kids":["A3","C1"],"concerns":["勉強","進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"15分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c902","title":"比べる表をつくる","desc":"候補を3つ、自分の条件を3つ。○△×をつけて比べる（アプリの中でできる）。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"公開","kids":["C4"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"候補を3つ書いて、いちばん大事な条件で○△×をつけよう。","tori":"","links":[],"img":""},{"id":"c903","title":"活動を記録する","desc":"行事・つばめ・資格・アルバイトなど、学校の外のことも。志望理由書や面接の材料になる。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"公開","kids":["C5","A2"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"最近やったこと（行事・アルバイト・資格など）と、そこで気づいたことを書こう。","tori":"","links":[],"img":""},{"id":"c904","title":"卒業までの進路カレンダーをつくる","desc":"自分の道の締切を、月ごとに書き出す（アプリの「時期のおしらせ」も見てね）。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C5"],"concerns":[],"michi":["すべて"],"nenji":[],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c904_卒業までの進路カレンダーをつくる","write":"","tori":"","links":[],"img":""},{"id":"c971","title":"次の居場所はいろいろある","desc":"進学・就職だけでなく、ゆっくり進む道や、卒業後も相談できる場所がある。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A1","C1"],"concerns":["自分のこと","進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c905","title":"わたしは給付型の対象？（進学資金シミュレーター）","desc":"おうちの人と一緒に、数分で目安がわかる（JASSO）。","kind":"サイト","url":"https://shogakukin-simulator.jasso.go.jp/","state":"公開","kids":["C2"],"concerns":["お金"],"michi":["大学","専門"],"nenji":[],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c906","title":"修学支援新制度（授業料の減免と返さなくていい奨学金）","desc":"高3の春に、学校を通して申し込む。締切は学校ごと。","kind":"サイト","url":"https://www.mext.go.jp/kyufu/student/koukou.html","state":"公開","kids":["C2"],"concerns":["お金"],"michi":["大学","専門"],"nenji":["S","G"],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c907","title":"入学前にかかるお金と、そのつなぎ方","desc":"受験料・入学金は奨学金より先に払う。延納や貸付などのつなぎ方。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2","C5"],"concerns":["お金"],"michi":["大学","専門"],"nenji":["G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c908","title":"看護・介護の道で使えるお金","desc":"看護師等修学資金、介護福祉士修学資金などの貸付。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2"],"concerns":["お金"],"michi":["大学","専門"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c911","title":"国公立大学の一般選抜（共通テストと2次試験）","desc":"共通テストの出願は9〜10月。受験科目は大学ごとにちがう。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["大学"],"nenji":["S","G"],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c912","title":"受験に必要な科目と、受講登録をたしかめる","desc":"単位制では、受験科目を自分で履修しておく必要がある。受講登録の前に。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A3","C5"],"concerns":["勉強"],"michi":["大学"],"nenji":["F","M","S"],"meyasu":"15分","bun":"学習支援部","dan":1,"box":"キャリアステップ ＞ c912_受験に必要な科目と、受講登録をたしかめる","write":"","tori":"","links":[],"img":""},{"id":"c913","title":"模試について","desc":"学校の外の模試の種類と申し込み方。結果の見方。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A3"],"concerns":["勉強"],"michi":["大学"],"nenji":["S","G"],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":["c916"],"img":""},{"id":"c916","title":"過去問について","desc":"過去問の手に入れ方と使い方。いつから、どう解くか。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv","state":"準備中","kids":["A3"],"concerns":["勉強"],"michi":["大学"],"nenji":["S","G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":["c913"],"img":""},{"id":"c914","title":"総合型選抜のスケジュールと準備","desc":"出願は9月ごろから。資格や活動の記録、志望理由書を早めに。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C5","A2"],"concerns":["進路の情報"],"michi":["大学"],"nenji":["S","G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c915","title":"学部を3つ見くらべる","desc":"学ぶこと・卒業後・自分の「好き」とのつながりを、3つの学部で比べる。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4"],"concerns":[],"michi":["大学"],"nenji":[],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c915_学部を3つ見くらべる","write":"","tori":"","links":[],"img":""},{"id":"c921","title":"求人票の見方","desc":"給与（手取り）・休日・通勤・離職者数など、見るところ。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C1"],"concerns":["進路の情報"],"michi":["就職"],"nenji":["S","G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c922","title":"求人票を2〜3枚くらべる","desc":"基本給・手当・年間休日・通勤・寮・離職者数を表にする。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["C4"],"concerns":[],"michi":["就職"],"nenji":["G"],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c922_求人票を2〜3枚くらべる","write":"","tori":"","links":[],"img":""},{"id":"c923","title":"職場見学に行く（7〜8月）","desc":"求人票が出たら、応募の前に見学へ。見学の準備シートつき。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["C3"],"concerns":["進路の情報"],"michi":["就職"],"nenji":["G"],"meyasu":"半日","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c924","title":"就職の面接ワーク（アルバイト経験を言葉にする）","desc":"自己PRを3行で。段階2で友だちと模擬面接も。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A2"],"concerns":[],"michi":["就職"],"nenji":["S","G"],"meyasu":"20分","bun":"進路支援部","dan":1,"box":"","write":"アルバイトや学校での経験から、自己PRを3行で書こう。","tori":"","links":[],"img":""},{"id":"c925","title":"初任給の手取りとくらし","desc":"手取りと、一人暮らしにかかるお金のざっくり計算。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["C2"],"concerns":["お金"],"michi":["就職"],"nenji":[],"meyasu":"5分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c932","title":"入学してから困らないために","desc":"レポート・実習・課題の出し方。入る前にできる準備。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A3"],"concerns":["勉強"],"michi":["大学","専門"],"nenji":["G"],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c942","title":"自分の説明書（こうだとやりやすい）","desc":"得意・苦手・やりやすくなる工夫を書く。配慮をたのむときに使える。音声入力でもOK。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A2","A4"],"concerns":["自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"15分","bun":"進路支援部","dan":1,"box":"","write":"「こうだとやりやすい」を2つ書こう。","tori":"","links":[],"img":""},{"id":"c943","title":"進学先での配慮（障害学生支援室）","desc":"大学・専門学校で配慮を受ける流れ。入学前に相談できる。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A4"],"concerns":["自分のこと"],"michi":["配慮"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c944","title":"障害者手帳・福祉サービスを知る","desc":"取るかどうかを決めるための材料（メリット・デメリット）。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A4"],"concerns":["自分のこと"],"michi":["配慮"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c953","title":"在留カードを見て確かめる（1分）","desc":"在留資格と期限を見て、先生に伝える。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A4"],"concerns":["生活や家のこと","自分のこと"],"michi":["外国籍"],"nenji":[],"meyasu":"1分","bun":"進路支援部","dan":1,"box":"キャリアステップ ＞ c953_在留カードを見て確かめる（1分）","write":"","tori":"","links":[],"img":""},{"id":"c961","title":"1週間の家の用事と、自分の時間を書き出す","desc":"家のことにどれくらい時間を使っているか、見える形にする。「自分のことを整理する」の③家庭・まわりの状況につながる。多いと感じたら、担任か教育相談部の先生に見せてみて。","kind":"ワーク","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"準備中","kids":["A4","B4"],"concerns":["生活や家のこと","自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"10分","bun":"進路支援部","dan":1,"box":"","write":"1週間の家の用事と、それにかかる時間を書き出そう。","tori":"","links":["c301"],"img":""},{"id":"c962","title":"家のことをしながらの進路","desc":"通える範囲の学校、支援を受けながらの進学・就職。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["A4","C5"],"concerns":["生活や家のこと","自分のこと"],"michi":["すべて"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""},{"id":"c981","title":"高大連携の講座に出る","desc":"大学の先生や学生と一緒に学ぶ。大学の雰囲気が分かる。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B2","C3","A3"],"concerns":["進路の情報"],"michi":["大学"],"nenji":[],"meyasu":"1コマ","bun":"FCL（探究）","dan":1,"box":"","write":"","tori":"高大連携","links":[],"img":""},{"id":"c983","title":"企業や商店街の人と交流する","desc":"地域の人と一緒に活動する。働く人の本音が聞ける。","kind":"体験","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["B2","C3"],"concerns":["進路の情報"],"michi":["すべて"],"nenji":[],"meyasu":"継続","bun":"FCL（探究）","dan":1,"box":"","write":"","tori":"企業・商店街との交流","links":[],"img":""},{"id":"c984","title":"探究科目で興味を深める","desc":"動画と科目案内で、スタラボ・まちラボなど探究科目の中身を知る。自分の興味から選んで深める。","kind":"動画","url":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","state":"実施中","kids":["A1","A3","B2","C3"],"concerns":["自分のこと","進路の情報"],"michi":["すべて"],"nenji":["M","S","G"],"meyasu":"5分","bun":"FCL（探究）","dan":1,"box":"","write":"","tori":"スタラボ","links":[],"img":""},{"id":"c986","title":"就職の先輩の話を聞く（動画）","desc":"清明から就職した先輩が、仕事と毎日を話す。","kind":"動画","url":"https://youtu.be/oDda2RlKLjk?si=gjnJmpgv5BlM2-V0","state":"準備中","kids":["B2","C1"],"concerns":["進路の情報"],"michi":["就職"],"nenji":[],"meyasu":"8分","bun":"進路支援部","dan":1,"box":"","write":"","tori":"","links":[],"img":""}],"tree":[{"q":"何がしたいのか、わからない","subs":[{"q":"なぜ、自分のことを知るの？","ids":["c106","c101"]},{"q":"好きなこと・興味が見つからない","ids":["c105","c102","c984"]},{"q":"自分の得意・苦手を整理したい","ids":["c301","c942","c610"]},{"q":"いまの勉強や活動は、将来につながるの？","ids":["c104","c804","c413","c805"]}]},{"q":"どんな進路があるの？","subs":[{"q":"進学と就職、なにがちがう？","ids":["c201","c202","c203","c204","c205","c971"]},{"q":"なりたい仕事から、道を知りたい","ids":["c901","c803"]},{"q":"先輩は、どうやって決めた？","ids":["c208","c609","c986"]},{"q":"実際に見て、たしかめたい","ids":["c207","c206","c802","c801","c983","c981"]}]},{"q":"どうやって選べばいい？","subs":[{"q":"候補の学校・会社を調べたい","ids":["c302","c703","c704","c303","c304","c915","c605"]},{"q":"くらべて、1つにしぼりたい","ids":["c902","c305","c306","c401"]},{"q":"だれかと一緒に考えたい","ids":["c307","c608","c601"]}]},{"q":"入試や就職の、しくみを知りたい","subs":[{"q":"大学・短大には、どうやって入る？","ids":["c701","c702","c914","c911"]},{"q":"専門学校には、どうやって入る？","ids":["c705","c204"]},{"q":"就職は、どう進む？","ids":["c706","c412","c924","c921","c922","c923","c707"]},{"q":"学力や、話すことに自信がない","ids":["c721"]},{"q":"いつ、何をすればいい？","ids":["c904","c402","c403","c404"]}]},{"q":"書類・面接・勉強の準備は、どうする？","subs":[{"q":"志望理由書・小論文・面接が不安","ids":["c405","c406","c407","c408","c924","c410"]},{"q":"受験勉強は、どう進める？","ids":["c913","c916","c409","c411","c912"]},{"q":"アピールできることがない","ids":["c903","c413","c501"]}]},{"q":"勉強についていけるか、心配","subs":[{"q":"単位や卒業は、大丈夫？","ids":["c724","c912"]},{"q":"基礎学力が心配","ids":["c721","c411","c409"]},{"q":"進学してから、ついていける？","ids":["c932","c943"]}]},{"q":"お金のことが心配","subs":[{"q":"学費は払える？ 返さなくていいお金は？","ids":["c301","c905","c906","c711","c908"]},{"q":"受験や入学の前に、いくらかかる？","ids":["c712","c907","c402"]},{"q":"働いたら・一人暮らししたら、どうなる？","ids":["c925","c713","c714"]}]},{"q":"家のこと・くらしのことが心配","subs":[{"q":"家の用事で、自分の時間がない","ids":["c744","c961","c962"]},{"q":"おうちの人と、進路の話がしにくい","ids":["c607","c301"]},{"q":"家を出て、進学・就職したい","ids":["c741","c713"]},{"q":"外国につながる・日本語・在留カードのこと","ids":["c953","c742","c743"]}]},{"q":"体調や気持ち、特性のことが心配","subs":[{"q":"テストで、手助けをお願いしたい","ids":["c731","c942"]},{"q":"進学先や働く場所で、支えはある？","ids":["c943","c732","c944"]},{"q":"学校に行けない日がある・気持ちがしんどい","ids":["c603","c734","c610","c724"]}]},{"q":"だれに相談すればいい？","subs":[{"q":"学校の先生に話したい","ids":["c601","c602","c603"]},{"q":"友だち・先輩と話したい","ids":["c608","c609"]},{"q":"いつでも、自分で調べたい","ids":["c604","c605"]}]},{"q":"やったことを残したい・ふり返りたい","subs":[{"q":"やったことを記録したい","ids":["c501","c903","c502","c504"]},{"q":"いまの自分を、たしかめたい","ids":["c503","c307"]}]}],"alias":{"c606":{"to":"","title":"カームダウンスペースで休む","kids":["A4"]},"c611":{"to":"","title":"学校からのお知らせを、おうちの人と一緒に見る","kids":["B5"]},"c982":{"to":"","title":"起業家講演会を聞く","kids":["A1","B2"]},"c723":{"to":"","title":"学習ピアサポートを使う","kids":["B3","A3"]},"c931":{"to":"","title":"中学の内容つまずきチェック（数学・英語）","kids":["A3"]},"c103":{"to":"c301","title":"自分のトリセツをつくる","kids":["A2","A1"]},"c985":{"to":"c984","title":"まちラボで地域に出る","kids":["B2","C3"]},"c733":{"to":"c732","title":"就労支援","kids":["A4"]},"c722":{"to":"c721","title":"話すのが心配 → いろいろな入試方法","kids":["C1","A2"]}},"status":[{"no":"1","label":"決めていて、変えるつもりはない","msg":"決めた道の準備を進めよう。","kids":[]},{"no":"2","label":"今の考えはあるが、他も見て比べたい","msg":"見て、くらべてみよう。","kids":["C3","B2","A1","C1"]},{"no":"3","label":"候補がいくつかあって迷っている","msg":"迷うのは、ちゃんと考えているしるし。","kids":["C4","A2","A4"]},{"no":"4","label":"まだ考え始めていない","msg":"まずは「好き」から。小さくてOK。","kids":["C1","A4","A1"]},{"no":"5","label":"考えたいが、今はうまく考えられない","msg":"今日は短いものを1つだけ。休むのも一歩。","kids":["A4","B4"]}],"concerns":["進路の情報","お金","勉強","自分のこと","生活や家のこと"],"routes":{"大学|1|進路の情報":["c701","c702","c911","c916","c913","c405","c203","c704","c703","c302","c207","c605"],"大学|1|お金":["c905","c906","c907","c908","c301","c402","c714"],"大学|1|勉強":["c703","c901","c721","c803","c912"],"大学|1|自分のこと":["c971","c301","c962","c203","c701","c702","c742","c731","c721"],"大学|1|生活や家のこと":["c962","c607","c742","c741","c203","c701","c702","c703","c704"],"大学|1|none":["c203","c701","c702","c703","c704","c911"],"大学|2|進路の情報":["c207","c302","c981","c801","c802","c983","c984","c405","c916","c913","c605"],"大学|2|お金":["c905","c906","c907","c908","c981","c301","c714"],"大学|2|勉強":["c703","c409","c912","c913","c932","c901"],"大学|2|自分のこと":["c971","c981","c301","c984","c742","c731","c721"],"大学|2|生活や家のこと":["c607","c961","c962","c742","c741","c207"],"大学|2|none":["c981","c207","c801","c802","c983","c984"],"大学|3|進路の情報":["c302","c207","c914","c721","c981","c203","c701","c702","c405","c916","c913","c605"],"大学|3|お金":["c905","c906","c907","c908","c302","c915","c714"],"大学|3|勉強":["c721","c409","c703","c912","c913","c932"],"大学|3|自分のこと":["c301","c942","c302","c915","c742","c731","c721"],"大学|3|生活や家のこと":["c607","c961","c962","c742","c741"],"大学|3|none":["c302","c915","c405","c914","c902","c305"],"大学|4|進路の情報":["c207","c302","c971","c981","c703","c901","c721","c803","c405","c916","c913","c605"],"大学|4|お金":["c905","c906","c907","c908","c301","c402","c714"],"大学|4|勉強":["c409","c703","c912","c913","c932","c104"],"大学|4|自分のこと":["c301","c984","c101","c102","c105","c742","c731","c721"],"大学|4|生活や家のこと":["c607","c961","c962","c742","c741"],"大学|4|none":["c106","c981","c409","c703","c912","c913","c932"],"大学|5|進路の情報":["c604","c605","c207","c981","c203","c701","c702","c703","c302","c405","c916","c913"],"大学|5|お金":["c301","c905","c906","c907","c908","c711","c714"],"大学|5|勉強":["c409","c703","c913","c932","c104","c724"],"大学|5|自分のこと":["c610","c961","c962","c301","c942","c742","c731","c721"],"大学|5|生活や家のこと":["c961","c962","c607","c742","c741"],"大学|5|none":["c610","c961","c962","c604","c301"],"専門|1|進路の情報":["c204","c701","c705","c206","c605","c901"],"専門|1|お金":["c905","c906","c907","c908","c301","c402","c714"],"専門|1|勉強":["c901","c721","c803","c932"],"専門|1|自分のこと":["c971","c301","c962","c204","c701","c705"],"専門|1|生活や家のこと":["c962","c607","c742","c741","c204","c701","c705"],"専門|1|none":["c204","c701","c705","c905","c906","c907"],"専門|2|進路の情報":["c207","c801","c802","c983","c984","c206","c605"],"専門|2|お金":["c905","c906","c907","c908","c301","c402","c714"],"専門|2|勉強":["c932","c901","c721","c803","c104"],"専門|2|自分のこと":["c971","c301","c984","c101"],"専門|2|生活や家のこと":["c607","c961","c962","c742","c741","c207","c801"],"専門|2|none":["c207","c801","c802","c983","c984","c303"],"専門|3|進路の情報":["c721","c204","c701","c705","c207","c801","c605"],"専門|3|お金":["c905","c906","c907","c908","c303","c301","c714"],"専門|3|勉強":["c721","c932","c303","c104","c411"],"専門|3|自分のこと":["c301","c942","c303","c984"],"専門|3|生活や家のこと":["c607","c961","c962","c742","c741","c303","c405"],"専門|3|none":["c303","c405","c902","c305","c306","c401"],"専門|4|進路の情報":["c971","c901","c721","c803","c204","c701","c605"],"専門|4|お金":["c905","c906","c907","c908","c301","c402","c714"],"専門|4|勉強":["c932","c104","c411","c724","c901"],"専門|4|自分のこと":["c301","c984","c101","c102","c105"],"専門|4|生活や家のこと":["c607","c961","c962","c301","c742","c741","c932"],"専門|4|none":["c106","c932","c301","c984","c101","c102"],"専門|5|進路の情報":["c604","c204","c701","c705","c971","c206","c605"],"専門|5|お金":["c301","c905","c906","c907","c908","c711","c714"],"専門|5|勉強":["c932","c104","c724","c721","c803"],"専門|5|自分のこと":["c610","c961","c962","c301","c942"],"専門|5|生活や家のこと":["c961","c962","c607","c742","c741"],"専門|5|none":["c610","c961","c962","c604","c301"],"就職|1|進路の情報":["c412","c205","c706","c707","c732","c921","c605"],"就職|1|お金":["c925","c301","c713","c714"],"就職|1|勉強":["c901","c732","c803","c703","c412"],"就職|1|自分のこと":["c732","c971","c301","c962","c412"],"就職|1|生活や家のこと":["c962","c607","c742","c741","c412","c205","c706","c707","c732"],"就職|1|none":["c412","c205","c706","c707","c732","c921"],"就職|2|進路の情報":["c412","c923","c986","c207","c801","c802","c605"],"就職|2|お金":["c925","c412","c923","c301","c402","c711","c714"],"就職|2|勉強":["c901","c721","c803","c412","c923"],"就職|2|自分のこと":["c732","c971","c412","c923"],"就職|2|生活や家のこと":["c607","c961","c962","c742","c741","c412","c923"],"就職|2|none":["c412","c923","c986","c207","c801","c802"],"就職|3|進路の情報":["c721","c412","c923","c205","c706","c707","c605"],"就職|3|お金":["c925","c304","c922","c301","c402","c711","c714"],"就職|3|勉強":["c721","c304","c922","c104","c411"],"就職|3|自分のこと":["c301","c942","c732","c304","c922"],"就職|3|生活や家のこと":["c607","c961","c962","c742","c741","c304","c922"],"就職|3|none":["c304","c922","c924","c902","c305","c306"],"就職|4|進路の情報":["c971","c986","c901","c721","c803","c412","c605"],"就職|4|お金":["c925","c301","c402","c711","c712","c713","c714"],"就職|4|勉強":["c104","c411","c724","c901","c721"],"就職|4|自分のこと":["c301","c984","c101","c102","c105"],"就職|4|生活や家のこと":["c607","c961","c962","c301","c742","c741"],"就職|4|none":["c106","c301","c984","c101","c102","c105"],"就職|5|進路の情報":["c732","c604","c412","c205","c706","c707","c605"],"就職|5|お金":["c301","c925","c732","c711","c712","c714"],"就職|5|勉強":["c732","c104","c724","c721"],"就職|5|自分のこと":["c732","c610","c961","c962"],"就職|5|生活や家のこと":["c961","c962","c607","c742","c741","c732"],"就職|5|none":["c732","c610","c961","c962"],"|2|進路の情報":["c207","c801","c802","c983","c984","c206","c605"],"|2|お金":["c301","c402","c711","c712","c713","c714"],"|2|勉強":["c901","c721","c803","c104","c411"],"|2|自分のこと":["c971","c301","c984","c101"],"|2|生活や家のこと":["c607","c961","c962","c742","c741","c207","c801"],"|2|none":["c207","c801","c802","c983","c984","c206"],"|3|進路の情報":["c721","c207","c801","c802","c983","c984","c605"],"|3|お金":["c301","c402","c711","c712","c713","c714"],"|3|勉強":["c721","c104","c411","c724","c901"],"|3|自分のこと":["c301","c942","c984","c101"],"|3|生活や家のこと":["c607","c961","c962","c742","c741","c902","c305"],"|3|none":["c902","c305","c306","c401","c406","c301"],"|4|進路の情報":["c971","c901","c721","c803","c206","c207","c605"],"|4|お金":["c301","c402","c711","c712","c713","c714"],"|4|勉強":["c104","c411","c724","c901","c721"],"|4|自分のこと":["c301","c984","c101","c102","c105"],"|4|生活や家のこと":["c607","c961","c962","c301","c742","c741"],"|4|none":["c106","c301","c984","c101","c102","c105"],"|5|進路の情報":["c604","c971","c206","c201","c202","c404","c605"],"|5|お金":["c301","c711","c712","c713","c714","c741"],"|5|勉強":["c104","c724","c721","c803"],"|5|自分のこと":["c610","c961","c962","c301","c942"],"|5|生活や家のこと":["c961","c962","c607","c742","c741"],"|5|none":["c610","c961","c962","c604","c301"]},"notices":[{"nenji":["F"],"from":1,"to":3,"michi":["すべて"],"title":"次の年の受講登録の前に","body":"進みたい道に必要な科目を、受講登録の前にたしかめよう。","rel":["c912"]},{"nenji":["M","S"],"from":4,"to":3,"michi":["外国籍"],"title":"在留カードを見ておこう","body":"在留資格によって、卒業後の手続きがちがう。高2のうちに先生とたしかめよう。","rel":["c953","c742"]},{"nenji":["M","S"],"from":10,"to":3,"michi":["大学"],"title":"指定校推薦を考えるなら","body":"評定は1年〜3年1学期の成績で決まる。いまの成績が選考に使われる。","rel":["c702"]},{"nenji":["M","S"],"from":10,"to":3,"michi":["配慮"],"title":"入試で配慮を受けたいなら","body":"高2のうちに、校内で配慮を受け始めよう。特別支援の先生・担任へ。","rel":["c731","c942"]},{"nenji":["M","S"],"from":1,"to":3,"michi":["すべて"],"title":"卒業までのカレンダーをつくろう","body":"自分の道の締切を、月ごとに書き出しておこう。","rel":["c904"]},{"nenji":["G"],"from":4,"to":6,"michi":["大学","専門"],"title":"給付型奨学金の申し込み（予約採用）","body":"修学支援新制度は高3の春に学校を通して申し込む。締切は学校の案内で確認。","rel":["c906","c905"]},{"nenji":["G"],"from":4,"to":6,"michi":["専門"],"title":"専門学校の候補をしぼる","body":"AO入試は6月ごろからエントリーが始まる。専願が多いので春に比べておこう。","rel":["c303","c705"]},{"nenji":["G"],"from":4,"to":5,"michi":["就職"],"title":"履歴書と自己PRの下書き","body":"7月の求人公開の前に、自己PRを3行で書いておこう。アルバイトや学校での経験でOK。","rel":["c924"]},{"nenji":["G"],"from":10,"to":12,"michi":["就職"],"title":"まだ決まっていなくても大丈夫（10月からの応募）","body":"10月中旬以降は複数の会社に応募できるようになる。二次募集もある。進路支援部で求人を一緒に探そう。","rel":["c922","c921"]},{"nenji":["G"],"from":6,"to":8,"michi":["就職"],"title":"求人票の公開（7月1日）と職場見学","body":"7月1日に求人票が公開。応募の前に、比べて、見学に行こう。","rel":["c921","c922","c923"]},{"nenji":["G"],"from":7,"to":8,"michi":["配慮"],"title":"共通テストの配慮申請","body":"夏に申請。診断書と、学校が書く報告書がいる。早めに先生へ。","rel":["c731"]},{"nenji":["G"],"from":8,"to":9,"michi":["就職"],"title":"応募書類の提出（9月5日〜）と選考（9月16日〜）","body":"応募する会社を決めて、面接の準備を。10月中旬以降の複数応募のルールは進路支援部で確認。","rel":["c924"]},{"nenji":["G"],"from":8,"to":10,"michi":["専門"],"title":"専門学校の出願（9月ごろ〜）","body":"AO入試の出願や、推薦・一般の出願が始まる。学校ごとの締切を確認。","rel":["c705"]},{"nenji":["G"],"from":8,"to":10,"michi":["大学"],"title":"総合型選抜の出願","body":"9月ごろから出願。志望理由書・活動の記録を早めに。","rel":["c914","c406"]},{"nenji":["G"],"from":9,"to":10,"michi":["大学"],"title":"共通テストの出願","body":"9月中旬〜10月上旬ごろ。学校で案内がある。","rel":["c911"]},{"nenji":["G"],"from":10,"to":12,"michi":["大学","専門"],"title":"学校推薦型・指定校の手続き","body":"11月ごろから。学校の締切に注意。","rel":["c702"]},{"nenji":["G"],"from":10,"to":3,"michi":["外国籍"],"title":"内定のあとの在留資格の手続き","body":"就職が決まったら、在留資格を変える手続きを。先生と入管の窓口へ。","rel":["c742"]},{"nenji":["G"],"from":1,"to":3,"michi":["すべて"],"title":"合格・内定のあとの手続き","body":"入学金の納付、書類の提出。受験報告書で後輩にバトンを。","rel":["c907","c504"]}],"soudan":[{"id":"k01","name":"担任の先生","what":"何から話せばいいかわからないことも。迷ったらここ。カウンセラーなど、ほかの人につないでもらうこともできる。","where":"学内","url":""},{"id":"k02","name":"進路支援部","what":"進路の情報、入試や就職の手続き、締切、奨学金の申し込み。","where":"学内","url":""},{"id":"k03","name":"教育相談部の先生","what":"気持ちのこと、しんどいこと、家のこと。スクールカウンセラーやスクールソーシャルワーカーなど、話を聞いてくれる人もいるので、まずは相談してみて。","where":"学内","url":""},{"id":"k04","name":"保健室（養護教諭）","what":"体や心がしんどい日。話したいとだけ言えばいい。","where":"学内","url":""},{"id":"k06","name":"特別支援コーディネーター・通級の先生","what":"特性のこと、学校や入試での配慮、配慮の申請。","where":"学内","url":""},{"id":"k07","name":"学習支援部","what":"単位・卒業、受講登録、勉強のしかた。","where":"学内","url":""},{"id":"k08","name":"京都府ヤングケアラー総合支援センター","what":"家族の世話をしている人の相談（電話・LINE）。","where":"学外","url":"https://hitorioya.kyoto/ycarer/"},{"id":"k09","name":"京都府国際センター（多言語生活相談）","what":"外国につながる人と家族の相談。多言語。","where":"学外","url":"https://www.kpic.or.jp/soudan/tagengo.html"},{"id":"k10","name":"外国人在留総合インフォメーションセンター","what":"在留資格（ビザ）の相談。やさしい日本語・多言語。","where":"学外","url":"https://www.moj.go.jp/isa/support/consultation/japanese.html"},{"id":"k11","name":"地域若者サポートステーション","what":"働くことに悩む若者の相談。卒業後も使える。","where":"学外","url":"https://www.mhlw.go.jp/seisaku/2013/12/01.html"}],"words":[{"w":"給付型","y":"きゅうふがた","d":"返さなくていいお金"},{"w":"貸与型","y":"たいよがた","d":"あとで返すお金（借りるお金）"},{"w":"奨学金","y":"しょうがくきん","d":"学校に通うためのお金の支援"},{"w":"修学支援新制度","y":"しゅうがくしえんしんせいど","d":"授業料が安くなる＋返さなくていい奨学金がもらえる国の制度"},{"w":"予約採用","y":"よやくさいよう","d":"高校にいるうちに奨学金を申し込むこと"},{"w":"総合型選抜","y":"そうごうがたせんばつ","d":"書類や面接で選ぶ入試（前はAO入試と言った）"},{"w":"学校推薦型選抜","y":"がっこうすいせんがたせんばつ","d":"高校の推薦で受ける入試"},{"w":"指定校推薦","y":"していこうすいせん","d":"大学が決めた高校だけが使える推薦。合格したら辞退できない"},{"w":"一般選抜","y":"いっぱんせんばつ","d":"学力の試験で選ぶ入試"},{"w":"共通テスト","y":"きょうつうてすと","d":"多くの大学が使う全国共通の試験（1月）"},{"w":"評定","y":"ひょうてい","d":"成績の数字（5段階）"},{"w":"校内選考","y":"こうないせんこう","d":"推薦に出す人を学校の中で選ぶこと"},{"w":"学校斡旋","y":"がっこうあっせん","d":"高校を通して会社に応募するしくみ"},{"w":"求人票","y":"きゅうじんひょう","d":"会社が出す、仕事の内容や給料が書いた紙"},{"w":"内定","y":"ないてい","d":"会社に入ることが決まること"},{"w":"在留資格","y":"ざいりゅうしかく","d":"日本にいるための資格（ビザ）"},{"w":"合理的配慮","y":"ごうりてきはいりょ","d":"障害や特性があっても同じように学べるようにする工夫。たのめば学校や会社は考える必要がある"},{"w":"通級","y":"つうきゅう","d":"自分に合った学び方を別の時間に学ぶ授業"},{"w":"受講登録","y":"じゅこうとうろく","d":"次の年にとる授業を選ぶこと"},{"w":"単位","y":"たんい","d":"授業を受けて合格したしるし。卒業に必要"},{"w":"スクールソーシャルワーカー","y":"すくーるそーしゃるわーかー","d":"家や生活のことで、使える支援につないでくれる人"},{"w":"養成施設","y":"ようせいしせつ","d":"資格をとるための、国が決めた学校"},{"w":"専願","y":"せんがん","d":"合格したら必ずそこに行く約束の受験"},{"w":"総探","y":"そうたん","d":"総合的な探究の時間"},{"w":"ポートフォリオ","y":"ぽーとふぉりお","d":"やったことの記録をまとめたもの"}],"set":{"版":"v8","目標":"正しい理解と自身の納得感をもって、見通しのあるポジションをとることができる","目標（生徒向け）":"自分と進路のことを正しく知って、納得して、先を見通して、自分の立ち位置を選べる人になる","学校HP":"https://www.kyoto-be.ne.jp/seimei-hs/cms/","いますぐ助けが必要なとき":"体や心が危ないと感じる／だれかに傷つけられている・おどされている／家にいられない・帰れない／ごはんや寝る場所に困っている――こういうときは、ステップを全部とばして、すぐ近くの先生・保健室へ。","学校の外の電話":"命が危ない・けががあるとき　110（警察）・119（救急）／24時間子供SOSダイヤル　0120-0-78310（なやみ言おう）／児童相談所虐待対応ダイヤル　189","限界のとき":"危なくはないけど、もう限界（ねむれない・家のことで勉強の時間がまったくない・学校に来るのがしんどい）――こういうときも、相談メモはいりません。保健室か教育相談部に「話したい」とだけ言えば大丈夫です。","資料箱の案内":"ロイロノートの資料箱「キャリアステップ」フォルダに、IDつきで入っています。","保護者の連絡の案内":"進路のことは担任か進路支援部へ、学校の代表電話でご連絡ください（平日）。三者面談に来られないときは、電話やオンラインでの面談も相談できます。"},"taisei":{"bunsho":["進路支援部","学習支援部","生徒支援部","教育相談部","総務企画部","学年・担任","教科","FCL（探究）"],"rows":[{"id":"A1","pillar":"自分を知る","name":"自分の興味・関心に気づく機会がある","sugata":"学校の外でも自分から続けている「好き」があると言える","step":"①気づき","q":"12 好き・得意","cells":{"進路支援部":"感想用紙・リファレンスシート※","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":"スタラボ（興味に基づく探究）※\nつばプロ※\n起業家講演会※"},"fill":"","next":""},{"id":"A2","pillar":"自分を知る","name":"自分の強みや特性を言葉にする機会がある","sugata":"自分の好き・得意を人に説明できる","step":"①気づき","q":"12 好き・得意","cells":{"進路支援部":"リファレンスシート※","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"A3","pillar":"自分を知る","name":"教科の学びと将来のつながりを実感できる","sugata":"学校での勉強が将来の仕事の可能性を広げると思える","step":"①気づき","q":"（調査に項目なし）","cells":{"進路支援部":"","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"","教科":"（記入）","FCL（探究）":"スタラボ※\n高大連携※"},"fill":"","next":""},{"id":"A4","pillar":"自分を知る","name":"苦手さや必要な配慮を自分で把握し、伝えられる","sugata":"自分に必要な助けが分かり、自分から申し出られる","step":"③整理する","q":"（調査に項目なし）","cells":{"進路支援部":"","学習支援部":"","生徒支援部":"チルグッズ・カームダウンスペース※","教育相談部":"（記入）","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"B1","pillar":"人と関わる","name":"進路について話せる大人が校内にいる","sugata":"学校に自分のことを分かってくれる先生や大人がいる","step":"①気づき","q":"13 相談相手","cells":{"進路支援部":"","学習支援部":"","生徒支援部":"ウォームアップ週間※","教育相談部":"","総務企画部":"","学年・担任":"（記入）","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"B2","pillar":"人と関わる","name":"学校外の大人・先輩と出会う機会がある","sugata":"働いている人や上級学校の先輩の話を聞いたことがある","step":"④行動する","q":"15 経験","cells":{"進路支援部":"分野別説明会※\n幼保看体験※","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":"まちラボ※\n高大連携※\n起業家講演会※\n企業・商店街との交流※"},"fill":"","next":""},{"id":"B3","pillar":"人と関わる","name":"生徒同士で進路や考えを交わす機会がある","sugata":"友達や先輩と進路について話したことがある","step":"③整理する","q":"13 相談相手","cells":{"進路支援部":"","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"（記入）","教科":"","FCL（探究）":"つばプロ※"},"fill":"","next":""},{"id":"B4","pillar":"人と関わる","name":"困ったときに相談先が分かり、自分からアクセスできる","sugata":"どこに誰に相談すればよいか分かり、自分から相談できる","step":"③整理する","q":"13 相談相手／19〜21 気になっていること","cells":{"進路支援部":"AIチャットボット※","学習支援部":"","生徒支援部":"","教育相談部":"（記入）","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"B5","pillar":"人と関わる","name":"家庭と学校が進路について共有する機会がある","sugata":"家族と進路について話し合えている","step":"③整理する","q":"14 保護者等との会話","cells":{"進路支援部":"","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"（記入）","学年・担任":"（記入）","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"C1","pillar":"ポジションをとる","name":"進路の選択肢と仕組みを正しく知る機会がある","sugata":"志望に必要な時期・方法をだいたい説明できる","step":"②知る","q":"19 進路の情報","cells":{"進路支援部":"進路動画コンテンツ※\n指定校推薦説明会※\n国公立大学の説明※\n分野別説明会※\n就職ガイダンス※","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"ICT活用（情報へのアクセス）※","学年・担任":"","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"C2","pillar":"ポジションをとる","name":"費用と支援制度を知る機会がある","sugata":"学費や奨学金のおおよそが分かっている","step":"②知る","q":"20 お金のこと","cells":{"進路支援部":"（記入）","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"C3","pillar":"ポジションをとる","name":"実際に試し、確かめる機会がある","sugata":"見学や体験を通じて、志望が自分に合うか確かめている","step":"④行動する","q":"15 経験","cells":{"進路支援部":"幼保看体験※","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"","教科":"","FCL（探究）":"まちラボ※\n高大連携※\n企業・商店街との交流※"},"fill":"","next":""},{"id":"C4","pillar":"ポジションをとる","name":"自分で選び、決める場面がある","sugata":"自分の考えで進路を選べている（納得感がある）","step":"④行動する","q":"10 興味があるから／16 納得している／17 立ち位置","cells":{"進路支援部":"","学習支援部":"科目選択の指導（記入）","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"（記入）","教科":"","FCL（探究）":""},"fill":"","next":""},{"id":"C5","pillar":"ポジションをとる","name":"決めたことを振り返り、必要なら選び直せる","sugata":"いつ何をすべきか見通しがあり、必要なら考え直せる","step":"⑤振り返る","q":"18 何をすればいいか考えている／22 次にやること","cells":{"進路支援部":"キャリアステップ調査※\n感想用紙※","学習支援部":"","生徒支援部":"","教育相談部":"","総務企画部":"","学年・担任":"（記入）","教科":"","FCL（探究）":""},"fill":"","next":""}],"daicho":[{"name":"つばプロ（必修探究）","bun":"FCL（探究）","nenji":"全年次","time":"通年","form":"授業","kids":["A1","B3"],"step":"①気づき・③整理する","aim":"（記入）","eval":"（記入）","note":"※要確認"},{"name":"スタラボ","bun":"FCL（探究）","nenji":"（記入）","time":"（記入）","form":"選択科目","kids":["A1","A3"],"step":"①気づき","aim":"（記入）","eval":"設問10・11","note":"※要確認"},{"name":"まちラボ","bun":"FCL（探究）","nenji":"（記入）","time":"（記入）","form":"選択科目","kids":["B2","C3"],"step":"④行動する","aim":"（記入）","eval":"設問15","note":"※要確認"},{"name":"進路動画コンテンツ","bun":"進路支援部","nenji":"（記入）","time":"（記入）","form":"動画","kids":["C1"],"step":"②知る","aim":"進路の仕組みを知る","eval":"設問19","note":"※要確認"},{"name":"AIチャットボット","bun":"進路支援部","nenji":"（記入）","time":"通年","form":"ICT","kids":["B4","C1"],"step":"②知る・③整理する","aim":"自分で調べ、相談先にたどり着く","eval":"（調査に項目なし）","note":"※要確認"},{"name":"指定校推薦説明会","bun":"進路支援部","nenji":"（記入）","time":"（記入）","form":"ガイダンス","kids":["C1","C4"],"step":"②知る","aim":"（記入）","eval":"設問19","note":"※要確認"},{"name":"感想用紙・リファレンスシート","bun":"進路支援部","nenji":"全年次","time":"通年","form":"様式","kids":["A1","A2","C5"],"step":"①気づき・⑤振り返る","aim":"興味・関心を意識できるようにする","eval":"（記入）","note":"※要確認"},{"name":"キャリアステップ調査","bun":"進路支援部","nenji":"全年次","time":"年2回（6月・11月）","form":"調査","kids":["C5","B4"],"step":"⑤振り返る","aim":"実態把握と生徒の意識づけ","eval":"本調査そのもの","note":"本表と対で運用"},{"name":"ウォームアップ週間","bun":"生徒支援部","nenji":"（記入）","time":"（記入）","form":"学校行事","kids":["B1"],"step":"①気づき","aim":"（記入）","eval":"（調査に項目なし）","note":"※要確認"},{"name":"チルグッズ・カームダウンスペース","bun":"生徒支援部","nenji":"全年次","time":"通年","form":"環境整備","kids":["A4"],"step":"③整理する","aim":"（記入）","eval":"（調査に項目なし）","note":"※要確認"},{"name":"分野別説明会","bun":"進路支援部","nenji":"（記入）","time":"（記入）","form":"ガイダンス","kids":["C1","B2"],"step":"②知る","aim":"（記入）","eval":"設問15「分野別説明会・進路ガイダンス」","note":"※要確認"},{"name":"幼保看体験（幼稚園・保育園／看護）","bun":"進路支援部","nenji":"（記入）","time":"（記入）","form":"体験","kids":["C3","B2"],"step":"④行動する","aim":"（記入）","eval":"設問15「幼稚園・保育園での体験」「看護の体験」","note":"※要確認"},{"name":"就職ガイダンス","bun":"進路支援部","nenji":"（記入）","time":"（記入）","form":"ガイダンス","kids":["C1"],"step":"②知る","aim":"（記入）","eval":"設問19「就職の探し方・応募の流れ」","note":"※要確認"},{"name":"高大連携","bun":"FCL（探究）","nenji":"（記入）","time":"（記入）","form":"連携","kids":["B2","C3","A3"],"step":"②知る・④行動する","aim":"（記入）","eval":"設問15","note":"※要確認"},{"name":"起業家講演会","bun":"FCL（探究）","nenji":"全年次","time":"（記入）","form":"講演","kids":["A1","B2"],"step":"①気づき","aim":"（記入）","eval":"設問12・15「働いている人の話を聞いた」","note":"※要確認。つばプロ内の行事なら統合を検討"},{"name":"企業・商店街との交流","bun":"FCL（探究）","nenji":"（記入）","time":"（記入）","form":"連携","kids":["B2","C3"],"step":"④行動する","aim":"（記入）","eval":"設問15「企業や商店街の人と交流した」","note":"※要確認。まちラボと同一なら統合"}],"taiou":[{"q":"アンケートで見る数値","why":"低いときに疑うこと","kids":["見直す小項目"],"bun":"主に動く分掌"},{"q":"設問12が低い","why":"自分の強みを言葉にする機会が足りない","kids":["A1","A2"],"bun":"FCL（探究）・進路支援部"},{"q":"設問15「どれもない」が多い","why":"学校外の大人・先輩と出会う機会が足りない","kids":["B2","C3"],"bun":"進路支援部・FCL（探究）"},{"q":"設問13「誰にも話していない」が多い","why":"相談の入口が機能していない","kids":["B1","B3","B4"],"bun":"学年・担任・教育相談部"},{"q":"設問14が低い","why":"家庭と進路の話が起きていない","kids":["B5"],"bun":"学年・担任・総務企画部"},{"q":"設問19に該当が多い","why":"情報提供の内容・時期が合っていない","kids":["C1"],"bun":"進路支援部"},{"q":"設問20に該当が多い","why":"費用と奨学金の説明が足りない","kids":["C2"],"bun":"進路支援部"},{"q":"設問21に該当が多い","why":"学習面の支援につながっていない","kids":["A3","C4"],"bun":"学習支援部・教科"},{"q":"設問10が低く設問11が高い","why":"自分で選ぶ場面が足りない（消極的な決定）","kids":["C4"],"bun":"学年・担任・進路支援部"},{"q":"設問16が低い","why":"納得して選べていない","kids":["C1","C3","C4"],"bun":"進路支援部・FCL（探究）"},{"q":"設問18・22が弱い","why":"見通しを立て、振り返る場が足りない","kids":["C5"],"bun":"進路支援部・学年・担任"},{"q":"設問17で⑤が多い","why":"考えられない状態の生徒を支える手前の支援が足りない","kids":["A4","B1","B4"],"bun":"教育相談部・生徒支援部"}]}};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PIL = {'自分を知る':'p1','人と関わる':'p2','ポジションをとる':'p3'};
+/* ===== マスタ（キャリアステップ_マスタv8.xlsx）の読み取り。組み替えツールとダッシュボードで共通 ===== */
+function parseMaster(XLSX, wb){
+  const P = [];
+  const split = v => String(v ?? '').split(/[、,／\/・]/).map(x => x.trim()).filter(Boolean);
+  const splitK = v => String(v ?? '').split(/[、,／\/]/).map(x => x.trim()).filter(Boolean);
+  const rowsOf = name => XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:''});
+  const table = name => { const a = rowsOf(name); const h = a[1] || []; return a.slice(2).filter(r => r[0] !== '' && r[0] != null).map(r => Object.fromEntries(h.map((k, i) => [k, r[i]]).filter(([k]) => k))); };
+  const need = ['分岐一覧','コンテンツ','マップ（問い）','IDの引き継ぎ','小項目','いまの自分','気になること','時期のおしらせ','相談先','ことば','設定','体制一覧表','取り組み台帳','アンケート対応表'];
+  const miss = need.filter(n => !wb.Sheets[n]);
+  if(miss.length) return {P:[`マスタにシート「${miss.join('」「')}」がありません。キャリアステップ_マスタv8.xlsx（v7以降）を選んでいるか確かめてください。`]};
+  const no = v => ['×','x','X','✕'].includes(String(v ?? '').trim());
+  // 体制一覧表
+  const t = rowsOf('体制一覧表'); const H = t[1] || []; const BUN = H.slice(6, 14);
+  const TROWS = t.slice(2).filter(r => /^[ABC]\d$/.test(String(r[1]).trim())).map(r => ({id:String(r[1]).trim(), pillar:r[0], name:r[2], sugata:r[3], step:r[4], q:r[5],
+    cells:Object.fromEntries(BUN.map((b, i) => [b, r[6 + i] || ''])), fill:r[14] || '', next:r[15] || ''}));
+  const OFF = Object.fromEntries(TROWS.map(r => [r.id, r]));
+  const DAICHO = table('取り組み台帳').filter(r => !/^(※|（記入）)/.test(String(r['取り組み名']))).map(r => ({name:r['取り組み名'], bun:r['担当分掌'], nenji:r['対象年次'], time:r['時期'], form:r['形態'],
+    kids:splitK(r['対応する小項目ID']), step:r['キャリアステップ'], aim:r['ねらい（何のために）'], eval:r['評価の手がかり'], note:r['備考']}));
+  const TAIOU = table('アンケート対応表').map(r => ({q:r['アンケートで見る数値'], why:r['低いときに疑うこと'], kids:splitK(r['見直す小項目']), bun:r['主に動く分掌']}));
+  // 小項目
+  const KIDS = table('小項目').map(r => { const id = String(r['ID']).trim(); const o = OFF[id] || {};
+    return {id, pillar:o.pillar || '', name:r['生徒向けの名前'] || o.name || id, ask:r['問いかけ'] || '', links:splitK(r['つながり（マップの線）']), official:o.name || '', sugata:o.sugata || '', q:o.q || ''}; });
+  const KI = new Set(KIDS.map(k => k.id));
+  KIDS.forEach(k => { if(!OFF[k.id]) P.push(`小項目 ${k.id} が「体制一覧表」シートにありません`); if(!k.pillar) P.push(`小項目 ${k.id} の柱が「体制一覧表」で空です`);
+    k.links.forEach(x => { if(!KI.has(x)) P.push(`小項目：${k.id} のつながり「${x}」がありません`); }); });
+  // コンテンツ
+  const CONTENTS = [], ALLIDS = new Set();
+  table('コンテンツ').forEach(r => {
+    const id = String(r['ID']).trim(); if(!id) return;
+    if(ALLIDS.has(id)) P.push(`コンテンツ：ID「${id}」が2回出てきます`); ALLIDS.add(id);
+    if(no(r['表示'])) return;
+    const kids = splitK(r['小項目']).filter(k => KI.has(k));
+    if(!kids.length){ P.push(`コンテンツ ${id}：小項目「${r['小項目']}」が A1〜C5 のどれでもないので、アプリに出ません`); return; }
+    if(!/^https?:\/\//.test(String(r['URL'] || ''))) P.push(`コンテンツ ${id}：URLが空か、http で始まっていません`);
+    CONTENTS.push({id, title:r['タイトル'] || id, desc:r['ひとこと説明'] || '', kind:r['種類'] || 'サイト', url:r['URL'] || '', state:r['状態'] || '', kids,
+      concerns:splitK(r['気になること']), michi:splitK(r['道']).length ? splitK(r['道']) : ['すべて'], nenji:splitK(r['年次']), meyasu:String(r['目安'] || ''),
+      bun:r['担当分掌'] || '', dan:parseInt(r['たすけ段階'] || 1) || 1, box:r['資料箱の場所'] || '', write:r['その場で書く問い'] || '', tori:r['体制表の取り組み'] || '',
+      links:splitK(r['つながるコンテンツ（ID）']), img:r['見本画像'] || ''});
+  });
+  const CID = new Set(CONTENTS.map(c => c.id));
+  CONTENTS.forEach(c => { c.links = c.links.filter(x => { if(!CID.has(x)){ P.push(`コンテンツ ${c.id}：つながるコンテンツ「${x}」がありません（表示×も含む）`); return false; } return x !== c.id; }); });
+  // IDの引き継ぎ（消した・まとめたID → 記録カードの読みかえ）
+  const ALIAS = {};
+  table('IDの引き継ぎ').forEach((r, i) => { const o = String(r['旧ID']).trim(), to = String(r['引き継ぎ先ID（空欄＝なくなった）'] || '').trim();
+    if(!/^c\d+$/.test(o)) return;
+    if(ALLIDS.has(o)) P.push(`IDの引き継ぎ：${o} はまだ「コンテンツ」シートにあります（消したIDだけ書く）`);
+    if(to && !ALLIDS.has(to)) P.push(`IDの引き継ぎ：${o} の引き継ぎ先「${to}」が「コンテンツ」シートにありません`);
+    ALIAS[o] = {to, title:r['旧タイトル'] || '', kids:splitK(r['旧小項目'])}; });
+  const fix = id => { let x = id, n = 0; while(ALIAS[x] && ALIAS[x].to && n++ < 9) x = ALIAS[x].to; return x; };
+  // マップ（問いの木）
+  const TREE = [];
+  rowsOf('マップ（問い）').slice(2).forEach((r, i) => {
+    const big = String(r[0] || '').trim(), sub = String(r[1] || '').trim(); let id = String(r[3] || '').trim();
+    if(!big && !sub && !id) return;
+    if(!big || !sub){ P.push(`マップ（問い） ${i + 3}行目：大きな問いと具体的な問いの両方を書いてください`); return; }
+    let b = TREE.find(x => x.q === big); if(!b){ b = {q:big, subs:[]}; TREE.push(b); }
+    let s2 = b.subs.find(x => x.q === sub); if(!s2){ s2 = {q:sub, ids:[]}; b.subs.push(s2); }
+    if(!id) return;
+    if(!ALLIDS.has(id) && ALIAS[id]){ id = fix(id); if(!id) return; }
+    if(!ALLIDS.has(id)){ P.push(`マップ（問い） ${i + 3}行目：ID「${id}」が「コンテンツ」シートにありません`); return; }
+    if(!CID.has(id)) return;
+    s2.ids.push([parseInt(r[2]) || 99, id]);
+  });
+  TREE.forEach(b => b.subs.forEach(s2 => { s2.ids = s2.ids.sort((a, c) => a[0] - c[0]).map(x => x[1]).filter((v, i, a) => a.indexOf(v) === i); }));
+  TREE.forEach(b => { b.subs = b.subs.filter(s2 => { if(!s2.ids.length) P.push(`マップ（問い）：「${b.q} → ${s2.q}」にコンテンツが1つもありません`); return s2.ids.length; }); });
+  const inTree = new Set(TREE.flatMap(b => b.subs.flatMap(s2 => s2.ids)));
+  CONTENTS.forEach(c => { if(!inTree.has(c.id)) P.push(`コンテンツ ${c.id}（${c.title}）が「マップ（問い）」のどこにも入っていません（マップに出ません）`); });
+  KIDS.forEach(k => { if(!CONTENTS.some(c => c.kids.includes(k.id))) P.push(`小項目 ${k.id}（${k.name}）に、表示するコンテンツが1つもありません`); });
+  const tn = new Set(DAICHO.map(d => d.name));
+  // いまの自分・気になること
+  const STATUS = table('いまの自分').map(r => ({no:String(r['番号']).trim(), label:r['選択肢（設問17と同文）'] || r['選択肢（設問20と同文）'], msg:r['ひとこと'] || '', kids:[]}));
+  const CONCERNS = table('気になること').filter(r => !no(r['表示'])).map(r => r['表示名']);
+  CONTENTS.forEach(c => { if(c.tori && !tn.has(c.tori)) P.push(`コンテンツ ${c.id}：体制表の取り組み「${c.tori}」が「取り組み台帳」にありません`);
+    c.concerns.forEach(x => { if(!CONCERNS.includes(x)) P.push(`コンテンツ ${c.id}：気になること「${x}」が「気になること」シートにありません`); }); });
+  // 分岐一覧 → routes["道|番号|気になること"] = [ID…]
+  const MI = {'大学・短大':'大学','専門学校':'専門','就職':'就職'};
+  const ROUTES = {};
+  rowsOf('分岐一覧').slice(2).forEach((r, i) => {
+    if(!r[0]) return;
+    const key = `${MI[String(r[0]).trim()] ?? ''}|${String(r[1]).trim().charAt(0)}|${String(r[2]).trim() === 'とくにない' ? 'none' : String(r[2]).trim()}`;
+    const id = String(r[4] || '').trim(); const rank = parseInt(r[3]) || 99;
+    (ROUTES[key] = ROUTES[key] || []);
+    if(!id) return;
+    if(!ALLIDS.has(id) && ALIAS[id]){ const t2 = fix(id); P.push(`分岐一覧 ${i + 3}行目：${id} はなくなったID${t2 !== id ? `（${t2} を出します）` : ''}。IDを選び直してください`); if(t2 === id) return; ROUTES[key].push([rank, t2]); return; }
+    if(!ALLIDS.has(id)){ P.push(`分岐一覧 ${i + 3}行目：ID「${id}」が「コンテンツ」シートにありません`); return; }
+    if(!CID.has(id)) return; // 表示×
+    ROUTES[key].push([rank, id]);
+  });
+  Object.keys(ROUTES).forEach(k => { ROUTES[k] = ROUTES[k].sort((a, b) => a[0] - b[0]).map(x => x[1]).filter((v, i, a) => a.indexOf(v) === i);
+    if(!ROUTES[k].length) P.push(`分岐一覧：「${k.replace(/\|/g,' × ').replace(/^ × /,'未定 × ')}」におすすめが1つもありません`); });
+  STATUS.forEach(s => { const ids = ROUTES[`|${s.no}|none`] || []; s.kids = [...new Set(ids.map(id => (CONTENTS.find(c => c.id === id) || {kids:[]}).kids[0]).filter(Boolean))]; });
+  const NOTICES = table('時期のおしらせ').map(r => ({nenji:splitK(r['年次']), from:parseInt(r['開始月']), to:parseInt(r['終了月']), michi:splitK(r['道']).length ? splitK(r['道']) : ['すべて'], title:r['タイトル'], body:r['内容'] || '', rel:splitK(r['関連コンテンツ'])}));
+  NOTICES.forEach(n => n.rel.forEach(x => { if(!ALLIDS.has(x)) P.push(`時期のおしらせ「${n.title}」の関連コンテンツ「${x}」がありません`); }));
+  const SOUDAN = table('相談先').map(r => ({id:r['ID'], name:r['名前'], what:r['何を相談できるか'], where:r['学内／学外'] || '学内', url:r['連絡・URL'] || ''}));
+  const WORDS = table('ことば').map(r => ({w:r['語'], y:r['よみ'] || '', d:r['やさしい説明'] || ''}));
+  const SET = Object.fromEntries(table('設定').map(r => [r['項目'], r['値']]));
+  return {P, D:{v:SET['版'] || 'v8', kids:KIDS, contents:CONTENTS, tree:TREE, alias:ALIAS, status:STATUS, concerns:CONCERNS, routes:ROUTES, notices:NOTICES, soudan:SOUDAN, words:WORDS, set:SET,
+    taisei:{bunsho:BUN, rows:TROWS, daicho:DAICHO, taiou:TAIOU}}};
+}
+
+/* ===== 案内ページ（チャットボットに読ませる、文字だけの公開ページ）===== */
+function makeKB(D){
+  const e = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const C = Object.fromEntries(D.contents.map(c => [c.id, c]));
+  const K = Object.fromEntries(D.kids.map(k => [k.id, k]));
+  const ML = {'大学':'大学・短大','専門':'専門学校','就職':'就職','':'まだ決めていない・迷っている'};
+  const line = c => `<li><b>${e(c.title)}</b>（${e(c.kind)}${c.meyasu ? '・' + e(c.meyasu) : ''}）：${e(c.desc)} ／ URL：<a href="${e(c.url)}">${e(c.url)}</a>${c.box ? ' ／ ロイロノートの資料箱：' + e(c.box) : ''}</li>`;
+  let h = `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>清明高校 キャリアステップ 案内データ</title>
+<meta name="description" content="京都府立清明高等学校 進路支援部のキャリアステップ（進路の一歩を選ぶアプリ）の案内データ。チャットボットが参照するためのページ。">
+<style>body{font-family:"BIZ UDPGothic","Meiryo",sans-serif;max-width:900px;margin:0 auto;padding:16px;line-height:1.8;color:#1A3040;background:#fff}h2{border-left:6px solid #2E7D9A;padding-left:8px;margin-top:32px}li{margin:4px 0}</style></head><body>
+<h1>清明高校 キャリアステップ 案内データ（${e(D.v)}）</h1>
+<p>このページは、京都府立清明高等学校 進路支援部の「キャリアステップ」の中身を、文章で一覧にしたものです。チャットボットは、このページにある情報とURLだけを使って案内します。ここにないURLは案内しません。</p>
+<h2>いますぐ助けが必要なとき</h2><p>${e(D.set['いますぐ助けが必要なとき'] || '')}。このようなときは、近くの先生・保健室にすぐ行ってください。学校の外の電話：${e(D.set['学校の外の電話'] || '')}</p>
+<h2>生徒の状況ごとのおすすめ（分岐）</h2><p>「考えている道」「いまの自分（キャリアステップ調査の設問17）」「気になること（設問19〜21。自分のこと・生活や家のことはアプリだけ）」の組み合わせごとに、おすすめを順番に並べています。</p>`;
+  const keys = Object.keys(D.routes || {});
+  ['大学','専門','就職',''].forEach(m => { h += `<h3>考えている道：${e(ML[m])}</h3>`;
+    D.status.forEach(s => { [...D.concerns, 'none'].forEach(cn => { const ids = (D.routes || {})[`${m}|${s.no}|${cn}`] || []; if(!ids.length) return;
+      h += `<h4>${e(ML[m])} ／ いまの自分：${e(s.label)} ／ 気になること：${cn === 'none' ? 'とくにない' : e(cn)}</h4><ol>${ids.map(id => C[id]).filter(Boolean).map(line).join('')}</ol>`; }); }); });
+  h += `<h2>生徒の疑問から探す（アプリのマップと同じ）</h2><p>大きな問い（生徒の不安）→ 具体的な問い → 答えになるコンテンツ の順です。カウンセラーやスクールソーシャルワーカーなどの専門の相談は、生徒が直接申し込むのではなく、担任か教育相談部の先生に相談するよう案内してください。</p>`;
+  (D.tree || []).forEach(b => { h += `<h3>${e(b.q)}</h3>`; b.subs.forEach(s2 => { h += `<h4>${e(s2.q)}</h4><ul>${s2.ids.map(id => C[id]).filter(Boolean).map(line).join('')}</ul>`; }); });
+  h += `<h2>14の小項目と、コンテンツの一覧</h2>`;
+  ['自分を知る','人と関わる','ポジションをとる'].forEach(pl => { h += `<h3>${pl}</h3>`;
+    D.kids.filter(k => k.pillar === pl).forEach(k => { h += `<h4>${e(k.id)} ${e(k.name)}（${e(k.official)}）</h4><p>${e(k.ask)}</p><ul>${D.contents.filter(c => c.kids.includes(k.id)).map(line).join('')}</ul>`; }); });
+  h += `<h2>時期のおしらせ</h2><ul>${D.notices.map(n => `<li><b>${e(n.title)}</b>（年次：${e(n.nenji.join('・'))}、${n.from}月〜${n.to}月、道：${e(n.michi.join('・'))}）：${e(n.body)}</li>`).join('')}</ul>
+<h2>相談先</h2><ul>${D.soudan.map(s => `<li><b>${e(s.name)}</b>（${e(s.where)}）：${e(s.what)}${s.url ? ' ／ ' + e(s.url) : ''}</li>`).join('')}</ul>
+<h2>ことば（やさしい説明）</h2><ul>${D.words.map(w => `<li><b>${e(w.w)}</b>（${e(w.y)}）：${e(w.d)}</li>`).join('')}</ul>
+<p>更新：組み替えツールで作成。元データ：キャリアステップ_マスタ。</p></body></html>`;
+  return h;
+}
+
+let KID = Object.fromEntries(D.kids.map(k => [k.id, k]));
+let TROW = Object.fromEntries(D.taisei.rows.map(r => [r.id, r]));
+let MSRC = '作成時のマスタ';
+document.getElementById('mfile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    if(!window.XLSX) throw new Error('Excelを読むための部品が読み込めませんでした。インターネットにつながっているか確かめてください。');
+    const r = parseMaster(XLSX, XLSX.read(await f.arrayBuffer(), {type:'array'}));
+    if(!r.D) throw new Error(r.P.join(' '));
+    Object.assign(D, r.D); KID = Object.fromEntries(D.kids.map(k => [k.id, k])); TROW = Object.fromEntries(D.taisei.rows.map(x => [x.id, x]));
+    MSRC = f.name; draw();
+    if(r.P.length) $('#banner').insertAdjacentHTML('beforeend', `<div class="banner">マスタに要確認が ${r.P.length} 件あります（組み替えツールで確認できます）。</div>`);
+  }catch(err){ $('#banner').innerHTML = `<div class="banner">${esc(err.message)}</div>`; }
+});
+
+/* 設問の見つけ方：Formsの列見出し（設問文）に含まれる語 */
+// v8（22問）の設問文に含まれる語。v7までの回答ファイルも読めるよう、旧い文も並べてある（配列は、どれかに合えばよい）
+// ※キー（q1〜q29）は内部の名前で、v7の番号のまま。画面に出す設問番号はv8の番号（how や説明文）。
+const Q = {
+  q1:'あなたの年次', q2:'何年目', q3:'クラスを教えて', q4:'出席番号', q5:'フルネーム', q6:'一番考えている進路',
+  q10:['企業名など','学校名・会社名・職種名'], q11:'本当に興味', q12:'他に思いつかない', q13:'「好き」や「得意」',
+  q15:'話したことがある相手', q16:'保護者', q18:'これまでにしたことがある経験',
+  q19:'考えに、納得している', q20:'いちばん近いもの', q21:['何をすればいいか考えている','具体的な目標をたて'], q22:'進路の情報で', q23:'お金のことで',
+  q24:'勉強のことで', q29:'次にやってみようと思うこと'
+};
+const POS = v => /^(あてはまる|どちらかといえばあてはまる)$/.test(String(v||'').trim());
+const HAS = (v, w) => String(v||'').split(/;|；/).map(x => x.trim()).includes(w);
+const ANY = v => String(v||'').split(/;|；/).map(x => x.trim()).filter(Boolean).length > 0;
+const ST = v => { const s = String(v||''); const i = ['決めていて','今の考えはある','候補がいくつか','まだ考え始めていない','考えたいが'].findIndex(k => s.includes(k)); return i < 0 ? 0 : i + 1; };
+const NENJI = v => (String(v||'').match(/^[FMSG]/)||[''])[0];
+const SCHOOL_EXP = ['分野別説明会・進路ガイダンス','働いている人の話を聞いた（講演会など）','上級学校の先輩の話を聞いた','幼稚園・保育園での体験','看護の体験','企業や商店街の人と交流した','探究の授業で学校の外の人と関わった','ボランティア'];
+const TRY_EXP = ['オープンキャンパス・学校見学','幼稚園・保育園での体験','看護の体験','企業や商店街の人と交流した'];
+
+let RAW = [], COLS = {}, SRC = '', IS_SAMPLE = false, TAB = 'all';
+const F = {nenji:'', nen:'', cls:''};
+
+/* ---------- 読み込み ---------- */
+function mapCols(header){
+  COLS = {};
+  for(const [k, w] of Object.entries(Q)){ const ws = [].concat(w); const i = header.findIndex(h => ws.some(x => String(h||'').includes(x))); if(i >= 0) COLS[k] = header[i]; }
+}
+function rowsToStudents(rows){
+  return rows.map(r => { const s = {}; for(const k of Object.keys(Q)) s[k] = COLS[k] ? r[COLS[k]] : undefined; s._name = s.q5 || r['名前'] || ''; return s; });
+}
+$('#file').addEventListener('change', async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    if(!window.XLSX) throw new Error('Excelを読むための部品が読み込めませんでした。インターネットにつながっているか確かめてください。');
+    const wb = XLSX.read(await f.arrayBuffer(), {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+    const header = XLSX.utils.sheet_to_json(ws, {header:1})[0] || [];
+    mapCols(header);
+    if(!COLS.q20 || !COLS.q1) throw new Error('キャリアステップ調査（v6〜v8）の回答ファイルではないようです（「年次」「いちばん近いもの」の列が見つかりません）。');
+    RAW = rowsToStudents(rows); SRC = f.name; IS_SAMPLE = false; draw();
+  }catch(err){ $('#banner').innerHTML = `<div class="banner">${esc(err.message)}</div>`; }
+});
+$('#sample').addEventListener('click', () => { makeSample(); draw(); });
+
+function makeSample(){
+  let seed = 11; const r = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const pick = a => a[Math.floor(r() * a.length)];
+  const L4 = ['あてはまる','どちらかといえばあてはまる','どちらかといえばあてはまらない','あてはまらない'];
+  const lik = p => L4[Math.min(3, Math.floor(r() * 4 * (1 - p) + r() * 1.2))];
+  const N = [['F','',38],['M','3卒',6],['M','4卒',28],['S','',38],['G','',38]];
+  RAW = []; let id = 0;
+  N.forEach(([g, y, n]) => { for(let i = 0; i < n; i++){ id++;
+    const st = g === 'G' ? pick([1,1,2,2,3,3,4,5]) : pick([2,3,3,4,4,4,5]);
+    const q20 = ['①決めていて、変えるつもりはない','②今の考えはあるが、他も見て比べたい','③候補がいくつかあって迷っている','④まだ考え始めていない','⑤考えたいが、今はうまく考えられない'][st - 1];
+    const exp = ['オープンキャンパス・学校見学','分野別説明会・進路ガイダンス','働いている人の話を聞いた（講演会など）','上級学校の先輩の話を聞いた','幼稚園・保育園での体験','看護の体験','企業や商店街の人と交流した','探究の授業で学校の外の人と関わった','ボランティア','アルバイト','資格・検定の取得'].filter(() => r() < (g === 'F' ? .12 : .25));
+    const aite = ['家族','担任の先生','担任以外の先生','進路支援部','友達','先輩・卒業生','ネットやSNS','AI'].filter(() => r() < .3);
+    RAW.push({
+      q1: g === 'M' ? (y === '3卒' ? '３卒M年次' : '４卒M年次') : g + '年次', q3: String(1 + Math.floor(r() * 4)), q4: String(1 + (id % 30)), q5:'サンプル生徒 ' + String(id).padStart(3,'0'), _name:'サンプル生徒 ' + String(id).padStart(3,'0'),
+      q6:pick(['大学（私立・文系）','専門学校','就職','進学か就職かで迷っている','まだ決めていない']),
+      q11:lik(st <= 2 ? .75 : .45), q12:lik(st === 1 ? .45 : .3), q13:lik(.5), q15: aite.length ? aite.join(';') : '誰にも話していない',
+      q16:pick(['よく話し合っている','ときどき話し合っている','ときどき話し合っている','あまり話し合っていない','ほとんど話し合っていない']),
+      q18: exp.length ? exp.join(';') : 'どれもない', q19:lik(st <= 2 ? .7 : .35), q20, q21:pick(['いつもそうしている','時々そうしている','時々そうしている','していない']),
+      q22: r() < .4 ? '入試の仕組み（総合型・推薦・一般）' : '', q23: r() < .45 ? '学費がどれくらいかかるか;奨学金のこと' : '', q24: r() < .3 ? '勉強のやり方が分からない' : '',
+      q29: r() < .8 ? pick(['オープンキャンパスに行く','奨学金を調べる','担任と話す','好きなことを書き出す']) : '',
+    }); } });
+  COLS = Object.fromEntries(Object.keys(Q).map(k => [k, k]));
+  SRC = 'サンプル（架空の生徒 148人）'; IS_SAMPLE = true;
+}
+
+/* ---------- 集計 ---------- */
+function prep(){
+  return RAW.map(s => {
+    const o = Object.assign({}, s);
+    o.g = NENJI(String(s.q1||'').replace(/^[３3４4]卒/, '')); const q1 = String(s.q1||''); o.y = /[３3]卒/.test(q1) ? '3卒' : /[４4]卒/.test(q1) ? '4卒' : (String(s.q2||'').replace(/[^0-9]/g,'') ? String(s.q2).replace(/[^0-9]/g,'') + '年目' : '');
+    o.st = ST(s.q20);
+    const needs = ['q22','q23','q24'].some(k => ANY(s[k]));
+    o.drop = !needs && !String(s.q29||'').trim();
+    o.type = o.st === 1 && POS(s.q12) ? '消極決定型' : (o.st === 1 || o.st === 2) && POS(s.q11) && POS(s.q19) ? '納得達成型'
+           : (o.st === 2 || o.st === 3) && /いつも|時々/.test(String(s.q21||'')) ? '探索型' : (o.st === 4 || o.st === 5) ? '未着手・停滞型' : '判定外';
+    o.reasons = [];
+    if(o.st === 5) o.reasons.push('うまく考えられない');
+    if(HAS(s.q15, '誰にも話していない')) o.reasons.push('誰にも話していない');
+    return o;
+  });
+}
+function filtered(all){ return all.filter(s => !s.drop && (!F.nenji || s.g === F.nenji) && (!F.nen || s.y === F.nen) && (!F.cls || String(s.q3) === F.cls)); }
+const pct = (arr, f) => { const v = arr.filter(x => x !== null && x !== undefined); if(!v.length) return null; return Math.round(v.filter(f).length / v.length * 100); };
+function has(k){ return !!COLS[k] && RAW.some(s => String(s[k]||'').trim()); }
+function scores(S){
+  const col = k => S.map(s => (String(s[k]||'').trim() ? s[k] : null));
+  const avg = (...xs) => { const v = xs.filter(x => x !== null); return v.length ? Math.round(v.reduce((a,b) => a + b, 0) / v.length) : null; };
+  return {
+    A1:{v:pct(col('q11'), POS), how:'設問10「本当に興味があるから」に肯定'},
+    A2:{v:pct(col('q13'), POS), how:'設問12「好き・得意を説明できる」に肯定'},
+    A3:{v:null, how:'v8の調査に項目なし（面談・授業の様子で見る）'},
+    A4:{v:null, how:'v8の調査に項目なし（面談・教育相談部との共有で見る）'},
+    B1:{v:null, how:'v8の調査に項目なし（設問13で担任・先生の選択も参考に）'},
+    B2:{v:pct(S, s => SCHOOL_EXP.some(e => HAS(s.q18, e))), how:'設問15で学校の外の人と出会う経験が1つ以上（アルバイト・資格は除く）'},
+    B3:{v:pct(S, s => HAS(s.q15,'友達') || HAS(s.q15,'先輩・卒業生')), how:'設問13で友達・先輩に話したことがある'},
+    B4:{v:pct(S, s => !HAS(s.q15,'誰にも話していない')), how:'設問13で「誰にも話していない」以外'},
+    B5:{v:pct(col('q16'), v => /よく|ときどき/.test(v)), how:'設問14で「よく・ときどき話し合っている」'},
+    C1:{v:pct(S, s => !ANY(s.q22)), how:'設問19「進路の情報」の困りごとがない割合（「正しい理解」の代わりの目安）'},
+    C2:{v:pct(S, s => !ANY(s.q23)), how:'設問20「お金」の困りごとがない割合'},
+    C3:{v:pct(S, s => TRY_EXP.some(e => HAS(s.q18, e))), how:'設問15で見学・体験を1つ以上'},
+    C4:{v:pct(col('q19'), POS), how:'設問16「納得している」に肯定'},
+    C5:{v:pct(col('q21'), v => /いつも|時々/.test(v)), how:'設問18「何をすればいいか考えている」で「いつも・時々」'},
+  };
+}
+
+/* ---------- 描画 ---------- */
+const TYPES = [['納得達成型','var(--t1)'],['消極決定型','var(--t2)'],['探索型','var(--t3)'],['未着手・停滞型','var(--t4)'],['判定外','var(--t5)']];
+function stackBar(S){
+  const n = S.length || 1;
+  return `<div class="stack">${TYPES.map(([t,c]) => { const k = S.filter(s => s.type === t).length; return k ? `<span title="${t} ${k}人" style="width:${k/n*100}%;background:${c}"></span>` : ''; }).join('')}</div>`;
+}
+function draw(){
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === TAB));
+  $('#src').textContent = SRC ? '読み込み中：' + SRC : '';
+  $('#banner').innerHTML = IS_SAMPLE ? '<div class="banner">いま表示しているのはサンプル（架空のデータ）です。実際の結果ではありません。</div>' : '';
+  $('#msrc').textContent = '体制：' + MSRC;
+  if(TAB === 'taisei'){ $('#filters').innerHTML = ''; $('#out').innerHTML = viewTaisei(); return; }
+  if(TAB === 'daicho'){ $('#filters').innerHTML = ''; $('#out').innerHTML = viewDaicho(); return; }
+  if(TAB === 'taiou'){ $('#filters').innerHTML = ''; $('#out').innerHTML = viewTaiou(); return; }
+  if(TAB === 'how'){ $('#filters').innerHTML = ''; $('#out').innerHTML = viewHow(); return; }
+  if(!RAW.length){ $('#filters').innerHTML = ''; $('#out').innerHTML = `<div class="panel empty-state"><p>Formsの「応答をExcelで開く」で保存したファイルを読み込んでください。</p><p>まず見てみたいときは「サンプルで試す」を押してください。</p><p class="sm">回答はこのブラウザの中だけで処理します。どこにも送りません。</p></div>`; return; }
+  const all = prep();
+  const cls = [...new Set(all.map(s => String(s.q3||'')).filter(Boolean))].sort();
+  $('#filters').innerHTML = `<label>年次 <select data-f="nenji"><option value="">すべて</option>${['F','M','S','G'].map(g => `<option ${F.nenji===g?'selected':''}>${g}</option>`).join('')}</select></label>
+    <label>区分 <select data-f="nen"><option value="">すべて</option>${[...new Set(all.map(s => s.y).filter(Boolean))].sort().map(y => `<option value="${esc(y)}" ${F.nen===y?'selected':''}>${esc(y === '3卒' ? '３卒M' : y === '4卒' ? '４卒M' : y)}</option>`).join('')}</select></label>
+    <label>クラス <select data-f="cls"><option value="">すべて</option>${cls.map(c => `<option ${F.cls===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label>`;
+  const S = filtered(all);
+  const out = $('#out');
+  if(TAB === 'all') out.innerHTML = viewAll(all, S);
+  if(TAB === 'follow') out.innerHTML = viewFollow(S);
+  if(TAB === 'where') out.innerHTML = viewWhere(S);
+}
+function kbars(sc){
+  return Object.keys(PIL).map(pl => `<div class="pl-h" style="color:var(--${PIL[pl]})">${pl}</div>` +
+    D.kids.filter(k => k.pillar === pl).map(k => { const s = sc[k.id]; const v = s.v; const low = v !== null && v < 50;
+      return `<button class="kb ${low ? 'low' : ''}" data-go="${k.id}"><span class="id" style="background:var(--${PIL[pl]}s);color:var(--${PIL[pl]})">${k.id}</span>
+        <span>${esc(TROW[k.id] ? TROW[k.id].name.replace(/機会がある$/,'') : k.name)}</span>
+        <span class="bar"><i style="width:${v ?? 0}%;background:var(--${PIL[pl]})"></i></span>
+        <span class="val">${v === null ? '—' : v}</span><span class="m">${esc(s.how)}</span></button>`; }).join('')).join('');
+}
+function viewAll(all, S){
+  const drop = all.filter(s => s.drop).length, fol = S.filter(s => s.reasons.length).length;
+  const byG = ['F','M','S','G'].map(g => { const sub = S.filter(s => s.g === g); if(!sub.length) return '';
+    const ys = [...new Set(sub.map(s => s.y))].sort();
+    return ys.map(y => { const t = sub.filter(s => s.y === y); return `<tr><td class="nw">${g}年次</td><td class="nw">${esc(y === '3卒' ? '３卒' : y === '4卒' ? '４卒' : y)}</td><td class="num">${t.length}</td><td style="min-width:220px">${stackBar(t)}</td>
+      ${TYPES.slice(0,4).map(([n]) => `<td class="num">${pct(t, s => s.type === n)}%</td>`).join('')}</tr>`; }).join(''); }).join('');
+  return `<div style="display:flex;flex-direction:column;gap:14px">
+    <div class="grid">
+      <div class="tile"><div class="k">集計した回答</div><div class="v">${S.length}<small> 人</small></div></div>
+      <div class="tile"><div class="k">途中離脱として除外</div><div class="v">${drop}<small> 件</small></div></div>
+      <div class="tile ${fol ? 'alert' : ''}"><div class="k">要フォロー</div><div class="v">${fol}<small> 人</small></div></div>
+      <div class="tile"><div class="k">納得達成型</div><div class="v">${pct(S, s => s.type === '納得達成型') ?? '—'}<small> %</small></div></div>
+    </div>
+    <div class="two">
+      <div class="panel"><h2>14の小項目（肯定的な回答の割合 %）</h2><p class="note">50未満はオレンジ。押すと「どこを強めるか」で体制一覧表の行が開きます。数値は調査からの目安で、測り方は各行の下に書いています。</p><div class="kbars">${kbars(scores(S))}</div></div>
+      <div class="panel"><h2>4タイプの割合（年次別）</h2><p class="note">判定は項目一覧v8「分析ガイド」と同じ。</p>
+        <div class="tbl"><table><tr><th>年次</th><th>区分</th><th>人数</th><th>内訳</th>${TYPES.slice(0,4).map(([n]) => `<th>${n}</th>`).join('')}</tr>${byG}</table></div>
+        <div class="legend">${TYPES.map(([n,c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')}</div></div>
+    </div></div>`;
+}
+function viewFollow(S){
+  const L = S.filter(s => s.reasons.length).sort((a,b) => (a.g + a.q3).localeCompare(b.g + b.q3) || (+a.q4) - (+b.q4));
+  return `<div class="panel"><h2>要フォロー（${L.length}人）</h2>
+    <p class="note">判定：設問17⑤／設問13「誰にも話していない」。v8では「相談したい」や、気持ち・家族の世話などの困りごとは調査で拾えないので、面談・担任の観察・教育相談部との共有で補ってください。声をかけるときは「アンケートに書いてあったから」と切り出さず、面談など自然な機会に。名前が出るのはこのタブだけです。</p>
+    <div class="tbl"><table><tr><th>年次</th><th>区分</th><th>クラス</th><th>番号</th><th>名前</th><th>理由</th><th>次の一歩（設問22）</th><th>タイプ</th></tr>
+    ${L.map(s => `<tr><td>${esc(s.g)}</td><td>${esc(s.y)}</td><td>${esc(s.q3)}</td><td class="num">${esc(s.q4)}</td><td>${esc(s._name)}</td>
+      <td>${s.reasons.map(r => `<span class="chip ${/うまく/.test(r) ? 'r' : ''}">${esc(r)}</span>`).join('')}</td><td>${esc(s.q29)}</td><td>${esc(s.type)}</td></tr>`).join('')}</table></div></div>`;
+}
+function viewWhere(S){
+  const sc = scores(S);
+  const order = D.kids.map(k => k.id).sort((a,b) => (sc[a].v ?? 101) - (sc[b].v ?? 101));
+  return `<div style="display:flex;flex-direction:column;gap:12px">
+    <p class="sm" style="margin:0">数値の低い順。体制一覧表 v8 の行（どの分掌が何を担っているか）と、生徒用アプリで出すコンテンツを並べています。表は「どこを見に行くか」の道案内で、原因を示すものではありません。自由記述と面談で確かめてから手を打ってください。</p>
+    ${order.map(id => { const t = TROW[id] || {cells:{}}; const k = KID[id]; const v = sc[id].v;
+      const cons = D.contents.filter(c => c.kids.includes(id));
+      const dai = D.taisei.daicho.filter(d => d.kids.includes(id));
+      return `<div class="kcard" id="k-${id}"><div><div class="sm">${id}・${esc(k.pillar)}</div><div class="score" style="color:${v !== null && v < 50 ? 'var(--low)' : `var(--${PIL[k.pillar]})`}">${v ?? '—'}</div><div class="sm">${esc(sc[id].how)}</div></div>
+        <div><h3>${esc(t.name || k.name)}</h3><div class="sm">生徒の姿：${esc(t.sugata || '')}</div>
+          <div class="cells">${D.taisei.bunsho.map(b => { const c = String(t.cells[b] || '').trim(); const e = !c || c === '（記入）';
+            return `<div class="cell ${e ? 'empty' : ''}"><b>${esc(b)}</b>${e ? '（空欄）' : esc(c)}</div>`; }).join('')}</div>
+          ${(D.taisei.taiou||[]).filter(x => x.kids.includes(id)).map(x => `<div class="hint2"><b>${esc(x.q)}</b> → ${esc(x.why)}（主に動く分掌：${esc(x.bun)}）</div>`).join('')}
+          ${dai.length ? `<div class="sm" style="margin-top:8px">台帳の取り組み：${dai.map(d => `<span class="chip">${esc(d.name)}</span>`).join('')}</div>` : ''}
+          <div class="sm" style="margin-top:6px">生徒用アプリのコンテンツ（${cons.length}件・公開/実施中 ${cons.filter(c => /公開|実施中/.test(c.state)).length}件）：${cons.slice(0,8).map(c => `<span class="chip" title="${esc(c.state)}">${esc(c.title)}</span>`).join('')}${cons.length > 8 ? ' ほか' : ''}</div></div></div>`; }).join('')}</div>`;
+}
+function viewTaisei(){
+  const B = D.taisei.bunsho;
+  return `<div class="panel"><h2>キャリア教育体制一覧表</h2><p class="note">元データ：マスタの「体制一覧表」シート（いま表示中：${esc(MSRC)}）。最新にするときは、右上の「マスタを読み込む」。※＝暫定配置。空欄＝まだ担う取り組みがない。</p>
+    <div class="tbl mat"><table><tr><th>ID</th><th>小項目</th><th>生徒の姿</th><th>調査</th>${B.map(b => `<th>${esc(b)}</th>`).join('')}<th>充足度</th><th>次の一手</th></tr>
+    ${D.taisei.rows.map(r => `<tr><td style="background:var(--${PIL[r.pillar]}s);font-weight:700">${r.id}</td><td class="h">${esc(r.name)}</td><td class="h">${esc(r.sugata)}</td><td>${esc(r.q)}</td>${B.map(b => { const v = String(r.cells[b] || '').trim(); return `<td class="${!v || v === '（記入）' ? 'emp' : ''}">${esc(v)}</td>`; }).join('')}<td>${esc(r.fill || '')}</td><td>${esc(r.next || '')}</td></tr>`).join('')}</table></div></div>`;
+}
+function viewDaicho(){
+  return `<div class="panel"><h2>取り組み台帳（${D.taisei.daicho.length}件）</h2><p class="note">元データ：マスタの「取り組み台帳」シート。</p>
+    <div class="tbl"><table><tr><th>取り組み名</th><th>担当分掌</th><th>対象年次</th><th>時期</th><th>形態</th><th>小項目</th><th>ねらい</th><th>評価の手がかり</th><th>備考</th></tr>
+    ${D.taisei.daicho.map(d => `<tr><td>${esc(d.name)}</td><td>${esc(d.bun)}</td><td>${esc(d.nenji)}</td><td>${esc(d.time)}</td><td>${esc(d.form)}</td><td>${esc(d.kids.join('・'))}</td><td>${esc(d.aim)}</td><td>${esc(d.eval)}</td><td>${esc(d.note)}</td></tr>`).join('')}</table></div></div>`;
+}
+function viewTaiou(){
+  return `<div class="panel"><h2>アンケート対応表</h2><p class="note">調査で数値が低かったとき、どの小項目・分掌を見に行くかの道案内です。原因を示すものではありません。元データ：マスタの「アンケート対応表」シート。</p>
+    <div class="tbl"><table><tr><th>アンケートで見る数値</th><th>低いときに疑うこと</th><th>見直す小項目</th><th>主に動く分掌</th></tr>
+    ${(D.taisei.taiou||[]).map(x => `<tr><td>${esc(x.q)}</td><td>${esc(x.why)}</td><td>${esc(x.kids.join('・'))}</td><td>${esc(x.bun)}</td></tr>`).join('')}</table></div></div>`;
+}
+function viewHow(){
+  return `<div class="panel howto"><h2>使い方</h2><ol>
+    <li>Formsで調査を締め切ったら、「応答」→「Excelで開く」でファイルを保存する。</li>
+    <li>このページの「Formsの回答Excelを読み込む」で、そのファイルを選ぶ。ファイルはこのブラウザの中だけで処理され、どこにも送られない。</li>
+    <li>「全体」で、年次・区分（３卒M・４卒M）・クラスを切り替えながら、14の小項目と4タイプを見る。</li>
+    <li>「要フォロー」で、声をかける生徒を確かめる。対応期限と声のかけ方は、手順書v8の「配布前に決めておくこと」に従う。</li>
+    <li>「どこを強めるか」で、数値の低い小項目の体制一覧表の行を見て、どの分掌の何を強めるかを話し合う。</li>
+    <li>生徒には、生徒用アプリ「キャリアステップ」で同じ小項目のコンテンツが出る。足りないコンテンツはマスタの「コンテンツ」シートに足す。</li>
+    <li>体制一覧表・取り組み台帳を最新にするときは、右上の「マスタを読み込む」でマスタを選ぶ（読むだけで、どこにも送られない）。</li></ol>
+    <p class="sm">v8の調査（22問）では、NIERから借りた設問を削除・変更したため、全国比較はしない。A3・A4・B1は調査に項目がないので「—」と出る（項目一覧v8「分析ガイド」）。v7までの回答ファイルも読めるが、判定はv8の基準で行う。</p></div>`;
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-t]'); if(t){ TAB = t.dataset.t; draw(); return; }
+  const g = e.target.closest('[data-go]'); if(g){ TAB = 'where'; draw(); const el = document.getElementById('k-' + g.dataset.go); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); }
+});
+document.addEventListener('change', e => { const f = e.target.dataset.f; if(f){ F[f] = e.target.value; draw(); } });
+makeSample(); draw();
+</script>
+
+</body>
+</html>
